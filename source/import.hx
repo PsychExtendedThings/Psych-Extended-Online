@@ -98,7 +98,7 @@ import flixel.group.FlxSpriteGroup;
 import flixel.group.FlxGroup.FlxTypedGroup;
 import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.math.FlxPoint;
-import shaders.flixel.system.FlxShader;
+import flixel.system.FlxAssets.FlxShader;
 import haxe.ds.StringMap;
 import online.backend.Deflection;
 

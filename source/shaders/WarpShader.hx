@@ -28,7 +28,7 @@ class WarpShader extends FlxShader {
     uniform float iTime;
     #define iChannel0 bitmap
     #define texture flixel_texture2D
-    #define fragColor gl_FragColor
+    #define fragColor openfl_FragColor
     #define mainImage main
 
     //change this value (1 to 5) or tweak the settings yourself.
