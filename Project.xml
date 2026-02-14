@@ -35,7 +35,6 @@
 
 	<!-- ______________________ PSYCH ENGINE CUSTOMIZATION ______________________ -->
 
-	<!-- <define name="legacy_lime" /> --> <!-- Enables legacy lime -->
 	<define name="MODS_ALLOWED" />
 	<define name="HSCRIPT_ALLOWED" />
 	<define name="LUA_ALLOWED" if="cpp" />
@@ -143,7 +142,6 @@
 	<haxelib name="flixel-ui" />
 	<haxelib name="flixel-addons" />
 	<!-- Mobile Libraries -->
-	<haxelib name="extension-androidtools" if="legacy_lime"/>
 	<haxelib name="mobile-controls"/>
 	<haxedef name="mobile_controls_file_support"/>
 	<haxedef name="mobile_controls_allow_mouse_clicks" if="desktop"/>
@@ -252,36 +250,10 @@
 
 	<haxedef name="SHARE_MOBILE_FILES" if="mobile" />
 	<haxedef name="DISABLE_AUDIO_FOCUS" if="android" /> <!-- Disable the fucking audio focus -->
-	
-	<!-- Mobile Shit -->
-	<section if="legacy_lime">
-		<section if="android">
-			<config:android permission="android.permission.MANAGE_MEDIA"/> 
-			<config:android permission="android.permission.MANAGE_EXTERNAL_STORAGE"/>
-			<config:android permission="android.permission.WRITE_EXTERNAL_STORAGE" />
-			<config:android permission="android.permission.READ_EXTERNAL_STORAGE" />
-			<config:android permission="android.permission.READ_MEDIA_IMAGES"/>
-			<config:android permission="android.permission.READ_MEDIA_AUDIO"/>
-			<config:android permission="android.permission.READ_MEDIA_VIDEO"/>
-			<config:android permission="android.permission.VIBRATE" />
-			<config:android permission="android.permission.INTERNET" />
-			<config:android permission="android.permission.ACCESS_WIFI_STATE"/>
-			<config:android permission="android.permission.ACCESS_NETWORK_STATE" />
-			<config:android permission="android.permission.CAPTURE_AUDIO_OUTPUT" />
-			<android target-sdk-version="35" />
-			<android min-sdk-version="24" />
-		</section>
-	</section>
 
 	<!-- Category Type for Apple Systems -->
 	<config:ios category_type="public.app-category.music-games" />
 	<config:mac category_type="public.app-category.music-games" />
-	
-	<!-- Lime Fix -->
-	<section unless="legacy_lime">
-		<haxedef name="lime_use_old_deltatime" />
-		<haxedef name="lime_disable_motion_sensors" />
-	</section>
 
 	<!-- Haxe 4.3.0+: Enable pretty syntax errors and stuff. -->
 	<!-- pretty (haxeflixel default), indent, classic (haxe compiler default) -->
