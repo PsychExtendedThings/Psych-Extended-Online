@@ -8,13 +8,14 @@
     {
       "name": "lime",
       "type": "git",
-      "ref": "main",
-      "url": "https://github.com/ArkoseLabsOfficial/lime-termux"
+      "ref": null,
+      "url": "https://github.com/ShadowEngineTeam/lime"
     },
     {
       "name": "openfl",
-      "type": "haxelib",
-      "version": "9.3.3"
+      "type": "git",
+      "ref": "5399946b68fd98f345d6b3e52b95ed6b78bf427c",
+      "url": "https://github.com/FunkinCrew/openfl"
     },
     {
       "name": "flixel",
@@ -40,9 +41,8 @@
     {
       "name": "hxcpp",
       "type": "git",
-      "dir": null,
-      "ref": "6546fa5c3ad1bac065f144745122ab5a6d4195ff",
-      "url": "https://github.com/FunkinCrew/hxcpp"
+      "ref": null,
+      "url": "https://github.com/ShadowEngineTeam/hxcpp"
     },
     {
       "name": "tjson",
@@ -52,9 +52,8 @@
     {
       "name": "SScript",
       "type": "git",
-      "dir": null,
       "ref": "main",
-      "url": "https://github.com/Snirozu/SScript-7.7.0"
+      "url": "https://github.com/ShadowEngineTeam/SScript"
     },
     {
       "name": "hxdiscord_rpc",
@@ -64,9 +63,8 @@
     {
       "name": "linc_luajit",
       "type": "git",
-      "dir": null,
-      "ref": "main",
-      "url": "https://github.com/th2l-devs/linc_luajit"
+      "ref": null,
+      "url": "https://github.com/ShadowEngineTeam/linc_luajit"
     },
     {
       "name": "colyseus",
@@ -90,13 +88,7 @@
     },
     {
       "name": "away3d",
-      "type": "haxelib",
-      "version": "5.0.9"
-    },
-    {
-      "name": "away3d",
       "type": "git",
-      "dir": null,
       "ref": "master",
       "url": "https://github.com/Snirozu/away3d"
     },
@@ -135,9 +127,8 @@
     {
       "name": "grig.audio",
       "type": "git",
-      "dir": null,
-      "ref": "162f924bdde427fc84af5b51961d2faef51f6955",
-      "url": "https://github.com/Snirozu/grig.audio"
+      "ref": "57f5d47f2533fd0c3dcd025a86cb86c0dfa0b6d2",
+      "url": "https://github.com/osakared/grig.audio"
     },
     {
       "name": "tink_core",
@@ -146,43 +137,33 @@
     },
     {
       "name": "hxvlc",
-      "type": "haxelib",
-      "version": "2.0.1"
+      "type": "git",
+      "ref": null,
+      "url": "https://github.com/ShadowEngineTeam/hxvlc"
     },
     {
       "name": "yagp",
       "type": "git",
-      "dir": null,
       "ref": "master",
       "url": "https://github.com/Snirozu/yagp"
     },
     {
       "name": "funkin.vis",
       "type": "git",
-      "dir": null,
       "ref": "1966f8fbbbc509ed90d4b520f3c49c084fc92fd6",
       "url": "https://github.com/FunkinCrew/funkVis"
     },
     {
       "name": "mobile-controls",
       "type": "git",
-      "dir": null,
       "ref": "main",
       "url": "https://github.com/Prohack101010/mobile-controls-dev"
     },
     {
       "name": "hscript-improved",
       "type": "git",
-      "dir": null,
       "ref": null,
       "url": "https://github.com/PsychExtendedThings/hscript-improved-Psych"
-    },
-    {
-      "name": "extension-androidtools",
-      "type": "git",
-      "dir": null,
-      "ref": "main",
-      "url": "https://github.com/MAJigsaw77/extension-androidtools"
     },
     {
       "name": "tink_await",

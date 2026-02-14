@@ -153,7 +153,7 @@ class View3DHandler extends View3D {
 		render();
 	}
 
-	override function __enterFrame(_delta:Int) {
+	override function __enterFrame(_delta:Float) {
 		super.__enterFrame(_delta);
 
 		if (stageScene == null) {

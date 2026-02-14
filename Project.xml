@@ -255,6 +255,8 @@
 	<config:ios category_type="public.app-category.music-games" />
 	<config:mac category_type="public.app-category.music-games" />
 
+	<haxedef name="openfl_dpi_aware" />
+
 	<!-- Haxe 4.3.0+: Enable pretty syntax errors and stuff. -->
 	<!-- pretty (haxeflixel default), indent, classic (haxe compiler default) -->
 	<!-- makes much easier to understand which line is has problem -->

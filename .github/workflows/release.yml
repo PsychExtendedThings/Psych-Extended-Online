@@ -7,7 +7,7 @@ permissions:
   discussions: write
 
 env:
-  PROJECT_NAME: PsychOnline
+  PROJECT_NAME: PsychExtendedOnline
 
 jobs:
   build:
@@ -30,7 +30,6 @@ jobs:
         name: ${{ matrix.name }}
         os: ${{ matrix.os }}
         buildArgs: ${{ matrix.buildArgs }}
-        assetType: ${{ matrix.assetType }}
         artifactName: ${{ matrix.artifactName }}
         artifactPath: ${{ matrix.artifactPath }}
 

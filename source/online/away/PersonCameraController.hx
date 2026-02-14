@@ -43,7 +43,7 @@ class PersonCameraController extends Sprite {
 		Lib.application.window.warpMouse(Std.int(Lib.application.window.width / 2), Std.int(Lib.application.window.height / 2));
 	}
 
-	override function __enterFrame(_delta:Int) {
+	override function __enterFrame(_delta:Float) {
 		super.__enterFrame(_delta);
 
 		wrapCameraRotation();

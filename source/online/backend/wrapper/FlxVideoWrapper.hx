@@ -30,8 +30,8 @@ class FlxVideoWrapper extends DisplayObject { // as DisplayObject so scripts thi
 	@:forwardField(_video.position) var position(get, set):Single;
 	@:forwardGetter(_video.mrl) var mrl(get, never):Null<String>;
 	@:forwardField(_video.volume) var volume(get, set):Int;
-	@:forwardField(_video.channel) var channel(get, set):Int;
-	@:forwardField(_video.delay) var delay(get, set):Int64;
+	//@:forwardField(_video.channel) var channel(get, set):Int;
+	//@:forwardField(_video.delay) var delay(get, set):Int64;
 	@:forwardField(_video.rate) var rate(get, set):Single;
 	@:forwardGetter(_video.isPlaying) var isPlaying(get, never):Bool;
 	@:forwardGetter(_video.isSeekable) var isSeekable(get, never):Bool;
