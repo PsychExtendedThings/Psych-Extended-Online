@@ -312,8 +312,6 @@ class DropShadowShader extends FlxShader
 			uniform float brightness;
 			uniform float contrast;
 
-			// remove this if #version 100
-
 			uniform float AA_STAGES;
 
 			const vec3 grayscaleValues = vec3(0.3098039215686275, 0.607843137254902, 0.0823529411764706);
