@@ -2,7 +2,7 @@ name: Android Build + Release
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 jobs:
   build-android:
@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: write
     env:
-      # CRITICAL: Tells Git to fail immediately instead of waiting for a password
+      # This kills the "Username/Password" prompt before it even starts
       GIT_TERMINAL_PROMPT: 0
     
     steps:
@@ -32,12 +32,12 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          set -e # Stops the script if a library fails
+          set -x # Shows every command in the background log
           
-          echo "Initializing Haxelib..."
+          echo "Setting up Haxelib..."
           haxelib setup ~/haxelib
           
-          echo "Installing Base Game Libraries..."
+          echo "Installing Base Libraries..."
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -48,15 +48,14 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
 
-          echo "Configuring Authentication-Free Git..."
-          # This forces Git to use standard HTTPS which doesn't trigger the 'Password' prompt
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          # FIX: The "Smart" Auth Bypass
+          # We use x-access-token with your internal GitHub Token for Read/Write
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          git config --global core.askpass /bin/echo
 
-          echo "Fetching Custom Android Dependencies..."
+          echo "Cloning Jigsaw/Polybius Dependencies..."
           mkdir -p ~/deps
           
-          # We use depth 1 to save time and prevent timeout errors
           git clone --depth 1 https://github.com/jigsaw-4277821/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
@@ -66,18 +65,16 @@ jobs:
           git clone --depth 1 https://github.com/jigsaw-4277821/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "Configuring Android SDK/NDK..."
+          echo "Finalizing Android SDK Connection..."
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
-          echo "Environment Ready!"
         shell: bash
 
       - name: Compile APK
         run: |
-          echo "Starting the C++ Transpilation..."
-          # -final ensures your RedMagic Astra uses all its cores for max FPS
+          echo "Building for RedMagic Astra (ARM64)..."
           haxelib run lime build android -final
         shell: bash
 
@@ -86,7 +83,7 @@ jobs:
         if: success()
         with:
           tag_name: "astra-v${{ github.run_number }}"
-          name: "Psych Online Android - Build ${{ github.run_number }}"
+          name: "Psych Online Android Build #${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
