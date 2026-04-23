@@ -29,13 +29,14 @@ jobs:
         with:
           haxe-version: 4.2.5
 
-      - name: Install Known Dependencies
+      - name: Install All Dependencies
         run: |
+          echo "::group::Installing Dependencies"
           set -e
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           haxelib setup ~/haxelib
           
-          # This list is now based on a full scan of the Psych-Extended-Online requirements
+          # Frameworks
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -43,6 +44,8 @@ jobs:
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
           haxelib install hxvlc --quiet
+          
+          # Networking & Data
           haxelib install tjson --quiet
           haxelib install json2object --quiet
           haxelib install tink_core --quiet
@@ -52,18 +55,25 @@ jobs:
           haxelib install http-status --quiet
           haxelib install thx.core --quiet
           haxelib install thx.semver --quiet
+          haxelib install colyseus --quiet
+          haxelib install colyseus-websocket --quiet
           haxelib install HtmlParser --quiet
+          
+          # Visuals & System
           haxelib install away3d --quiet
           haxelib install systools --quiet
+          haxelib install actuate --quiet
+          haxelib install discord_rpc --quiet
           haxelib install hscript --quiet
           
+          # Git Repos
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
           haxelib git UnRAR https://github.com/Snirozu/Haxe-UnRAR --quiet
 
-          # Mobile Deps
+          # Mobile
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
@@ -78,30 +88,23 @@ jobs:
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
+          echo "::endgroup::"
         shell: bash
 
-      - name: Compile APK with Auto-Healing
+      - name: Compile APK (Clean Build)
         run: |
-          echo "Starting build with crash-protection..."
-          # Max 5 attempts to catch missing libraries dynamically
-          for i in {1..5}; do
-            echo "Build attempt $i..."
-            if haxelib run lime build android -final > build_log.txt 2>&1; then
-              echo "Build Successful!"
-              exit 0
-            else
-              cat build_log.txt
-              # Scrape the log for the missing haxelib name
-              MISSING_LIB=$(grep -oP 'Could not find haxelib "\K[^"]+' build_log.txt | head -n 1)
-              if [ ! -z "$MISSING_LIB" ]; then
-                echo "Detected missing library: $MISSING_LIB. Installing now..."
-                haxelib install $MISSING_LIB --quiet
-              else
-                echo "Build failed for a non-library reason. Check logs above."
-                exit 1
-              fi
-            fi
-          done
+          echo "Build starting... Logs are collapsed to keep things clean."
+          echo "::group::Compiler Output (Click to expand if needed)"
+          # -quiet reduces the spam, -final optimizes for the RedMagic Snapdragon 8 Elite
+          haxelib run lime build android -final -quiet
+          echo "::endgroup::"
+          echo "Build finished! Searching for APK..."
+        shell: bash
+
+      - name: Find and Upload APK
+        run: |
+          mkdir -p output
+          find export/ -name "*.apk" -exec cp {} output/ \;
         shell: bash
 
       - name: Create Release
@@ -110,4 +113,4 @@ jobs:
         with:
           tag_name: "astra-v${{ github.run_number }}"
           name: "Psych Online Extended Build #${{ github.run_number }}"
-          files: export/release/android/bin/app/build/outputs/apk/release/*.apk
+          files: output/*.apk
