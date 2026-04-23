@@ -31,12 +31,15 @@ jobs:
 
       - name: Install All Dependencies
         run: |
-          echo "::group::Installing Dependencies"
+          echo "::group::Configuring Git and Haxelib"
           set -e
-          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          # Force Git to use HTTPS and handle tokens for sub-clones
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://".insteadOf "git://"
+          
           haxelib setup ~/haxelib
           
-          # Frameworks (Stable on Haxelib)
+          # 1. CORE LIBRARIES (Haxelib Server)
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -44,57 +47,50 @@ jobs:
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
           haxelib install hxvlc --quiet
-          
-          # Networking & Data
           haxelib install tjson --quiet
           haxelib install json2object --quiet
+          haxelib install thx.core --quiet
+          haxelib install thx.semver --quiet
+          haxelib install hscript --quiet
+          haxelib install compiletime --quiet
+          haxelib install systools --quiet
+          haxelib install actuate --quiet
+          
+          # 2. ONLINE STACK (Haxelib Server)
+          haxelib install colyseus --quiet
+          haxelib install colyseus-websocket --quiet
           haxelib install tink_core --quiet
           haxelib install tink_http --quiet
           haxelib install tink_url --quiet
           haxelib install tink_web --quiet
           haxelib install http-status --quiet
-          haxelib install thx.core --quiet
-          haxelib install thx.semver --quiet
-          haxelib install colyseus --quiet
-          haxelib install colyseus-websocket --quiet
           haxelib install HtmlParser --quiet
-          haxelib install yaml --quiet
-          haxelib install markdown --quiet
-          
-          # Scripting & Utilities (Switched to Git where Haxelib fails)
-          haxelib install lumod --quiet
-          haxelib install away3d --quiet
-          haxelib install systools --quiet
-          haxelib install actuate --quiet
-          haxelib install discord_rpc --quiet
-          haxelib install hscript --quiet
-          haxelib install compiletime --quiet
-          haxelib git hx-lua https://github.com/larsiusprime/hx-lua.git --quiet
-          haxelib git hscript-ex https://github.com/ianarrgh/hscript-ex.git --quiet
-          haxelib git vector-math https://github.com/Tw1ddle/geometrize-haxe-vector-math.git --quiet
 
-          # Git-Direct Installs
-          haxelib git hxGeomAlgo https://github.com/azrafe7/hxGeomAlgo.git --quiet
-          haxelib git grig.core https://github.com/grig-org/grig.core.git --quiet
-          haxelib git grig.audio https://github.com/grig-org/grig.audio.git --quiet
-          haxelib git linc_stb https://github.com/snowkit/linc_stb.git --quiet
+          # 3. GIT LIBRARIES (Direct Source)
+          # We use --depth 1 to prevent cloning errors on large repos
+          haxelib git hx-lua https://github.com/larsiusprime/hx-lua --quiet
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
-          haxelib git UnRAR https://github.com/Snirozu/Haxe-UnRAR --quiet
-
-          # Mobile/Native Repos
+          haxelib git grig.core https://github.com/grig-org/grig.core --quiet
+          haxelib git grig.audio https://github.com/grig-org/grig.audio --quiet
+          
+          # 4. ANDROID/MOBILE DEPS
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
+          
           git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
+          
           git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
+          
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
+          # 5. ENVIRONMENT SETUP
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
