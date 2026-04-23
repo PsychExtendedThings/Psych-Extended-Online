@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: write
     env:
-      # This kills the "Username/Password" prompt before it even starts
+      # Kills any hidden password/username prompts
       GIT_TERMINAL_PROMPT: 0
     
     steps:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          set -x # Shows every command in the background log
+          set -x # Background Transparency: Shows every command being run
           
           echo "Setting up Haxelib..."
           haxelib setup ~/haxelib
@@ -48,24 +48,22 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
 
-          # FIX: The "Smart" Auth Bypass
-          # We use x-access-token with your internal GitHub Token for Read/Write
-          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          git config --global core.askpass /bin/echo
-
-          echo "Cloning Jigsaw/Polybius Dependencies..."
+          echo "Fetching Corrected Android Dependencies..."
           mkdir -p ~/deps
           
-          git clone --depth 1 https://github.com/jigsaw-4277821/linc_luajit ~/deps/linc_luajit
+          # FIX: Corrected URL for linc_luajit
+          git clone --depth 1 https://github.com/jigsaw-4277821/linc_luajit-nebulazorua ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
+          # Standard hxCodec for video support
           git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
-          git clone --depth 1 https://github.com/jigsaw-4277821/extension-androidtools ~/deps/extension-androidtools
+          # Most stable version of Android Tools
+          git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "Finalizing Android SDK Connection..."
+          echo "Linking Android SDK..."
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -74,7 +72,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Building for RedMagic Astra (ARM64)..."
+          echo "Starting C++ Compilation for RedMagic Astra..."
           haxelib run lime build android -final
         shell: bash
 
