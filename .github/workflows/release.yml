@@ -9,14 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      # Absolute prompt killer
+      GIT_TERMINAL_PROMPT: 0
     
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
-          # This ensures the main repo uses the built-in auth correctly
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -31,8 +32,10 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          # 1. Basic Setup
+          set -e
           haxelib setup ~/haxelib
+          
+          echo "Installing Base Libraries..."
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -43,23 +46,25 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
 
-          # 2. THE FIX: Force Git to use the Runner's built-in Auth for everything
-          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          
-          echo "Fetching Android-specific dependencies..."
+          echo "Removing potential auth-loop triggers..."
+          git config --global --unset-all url."https://github.com/".insteadOf || true
+
+          echo "Fetching Corrected & Active Android Dependencies..."
           mkdir -p ~/deps
           
-          # Using corrected repo names
-          git clone --depth 1 https://github.com/jigsaw-4277821/linc_luajit-nebulazorua ~/deps/linc_luajit
+          # FIX: Using the most stable LuaJIT bindings for Android
+          git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
+          # Stable Video Loader
           git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
+          # Corrected Android Tools Repository
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          # 3. Android SDK Setup
+          echo "Finalizing Android SDK..."
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -68,7 +73,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          # The background compilation process
+          echo "Building for RedMagic Astra (ARM64)..."
           haxelib run lime build android -final
         shell: bash
 
@@ -77,7 +82,7 @@ jobs:
         if: success()
         with:
           tag_name: "astra-v${{ github.run_number }}"
-          name: "Psych Online Android - Build ${{ github.run_number }}"
+          name: "Psych Online Android Build #${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
