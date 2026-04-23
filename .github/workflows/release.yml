@@ -29,75 +29,79 @@ jobs:
         with:
           haxe-version: 4.2.5
 
-      - name: Install Dependencies
+      - name: Install Known Dependencies
         run: |
           set -e
-          # Universal Auth Fix for Private/Redirected Repos
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          
           haxelib setup ~/haxelib
           
-          echo "--- 1. Base Game & UI ---"
+          # This list is now based on a full scan of the Psych-Extended-Online requirements
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
           haxelib install flixel-addons 3.0.2 --quiet
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
-          haxelib install tjson --quiet
           haxelib install hxvlc --quiet
-          haxelib install actuate --quiet
-
-          echo "--- 2. Networking & HTML (Psych Online) ---"
-          haxelib install colyseus --quiet
-          haxelib install colyseus-websocket --quiet
-          haxelib install tink_url --quiet
+          haxelib install tjson --quiet
+          haxelib install json2object --quiet
+          haxelib install tink_core --quiet
           haxelib install tink_http --quiet
-          haxelib install HtmlParser --quiet
+          haxelib install tink_url --quiet
+          haxelib install tink_web --quiet
           haxelib install http-status --quiet
-
-          echo "--- 3. 3D & System Tools (Extended Features) ---"
+          haxelib install thx.core --quiet
+          haxelib install thx.semver --quiet
+          haxelib install HtmlParser --quiet
           haxelib install away3d --quiet
           haxelib install systools --quiet
-          haxelib install discord_rpc --quiet
-          haxelib install hxdiscord_rpc --quiet
-
-          echo "--- 4. Scripting & Visual Git Repos ---"
+          haxelib install hscript --quiet
+          
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
           haxelib git UnRAR https://github.com/Snirozu/Haxe-UnRAR --quiet
-          haxelib git polymod https://github.com/larsiusprime/polymod.git --quiet
 
-          echo "--- 5. Mobile Porting Deps ---"
+          # Mobile Deps
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
-
           git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
-          
           git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
-          
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- 6. Verification ---"
-          haxelib list
-
-          echo "--- 7. Android System Setup ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
         shell: bash
 
-      - name: Compile APK
+      - name: Compile APK with Auto-Healing
         run: |
-          echo "Starting the final build for RedMagic Astra... focusing on Snapdragon 8 Elite optimization."
-          haxelib run lime build android -final
+          echo "Starting build with crash-protection..."
+          # Max 5 attempts to catch missing libraries dynamically
+          for i in {1..5}; do
+            echo "Build attempt $i..."
+            if haxelib run lime build android -final > build_log.txt 2>&1; then
+              echo "Build Successful!"
+              exit 0
+            else
+              cat build_log.txt
+              # Scrape the log for the missing haxelib name
+              MISSING_LIB=$(grep -oP 'Could not find haxelib "\K[^"]+' build_log.txt | head -n 1)
+              if [ ! -z "$MISSING_LIB" ]; then
+                echo "Detected missing library: $MISSING_LIB. Installing now..."
+                haxelib install $MISSING_LIB --quiet
+              else
+                echo "Build failed for a non-library reason. Check logs above."
+                exit 1
+              fi
+            fi
+          done
         shell: bash
 
       - name: Create Release
