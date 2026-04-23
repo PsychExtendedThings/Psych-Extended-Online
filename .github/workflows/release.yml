@@ -10,7 +10,6 @@ jobs:
     permissions:
       contents: write
     env:
-      # Absolute prompt killer
       GIT_TERMINAL_PROMPT: 0
     
     steps:
@@ -34,8 +33,6 @@ jobs:
         run: |
           set -e
           haxelib setup ~/haxelib
-          
-          echo "Installing Base Libraries..."
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -45,26 +42,21 @@ jobs:
           haxelib install hxvlc --quiet
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
-
-          echo "Removing potential auth-loop triggers..."
-          git config --global --unset-all url."https://github.com/".insteadOf || true
-
-          echo "Fetching Corrected & Active Android Dependencies..."
-          mkdir -p ~/deps
           
-          # FIX: Using the most stable LuaJIT bindings for Android
+          # This is the fix for the "mobile-controls" error
+          haxelib git mobile-controls https://github.com/MAJigsaw77/mobile-controls
+
+          echo "Fetching your verified Android dependencies..."
+          mkdir -p ~/deps
           git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
-          # Stable Video Loader
           git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
-          # Corrected Android Tools Repository
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "Finalizing Android SDK..."
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -73,7 +65,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Building for RedMagic Astra (ARM64)..."
+          echo "Compiling C++ for RedMagic Astra... this will take a while."
           haxelib run lime build android -final
         shell: bash
 
