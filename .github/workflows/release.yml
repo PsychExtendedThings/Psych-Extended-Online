@@ -45,7 +45,7 @@ jobs:
           haxelib install flixel-tools --quiet
           haxelib install hxvlc --quiet
           
-          # Networking & Data
+          # Networking & Data Stack
           haxelib install tjson --quiet
           haxelib install json2object --quiet
           haxelib install tink_core --quiet
@@ -59,28 +59,33 @@ jobs:
           haxelib install colyseus-websocket --quiet
           haxelib install HtmlParser --quiet
           
-          # Visuals & System
+          # Visuals & Advanced Modding
+          haxelib install lumod --quiet
           haxelib install away3d --quiet
           haxelib install systools --quiet
           haxelib install actuate --quiet
           haxelib install discord_rpc --quiet
           haxelib install hscript --quiet
+          haxelib install hscript-ex --quiet
           
-          # Git Repos
+          # Git Repos (Specific FNF Forks)
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
           haxelib git UnRAR https://github.com/Snirozu/Haxe-UnRAR --quiet
 
-          # Mobile
+          # Mobile/Android Native Components
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
+          
           git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
+          
           git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
+          
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
@@ -93,12 +98,10 @@ jobs:
 
       - name: Compile APK (Clean Build)
         run: |
-          echo "Build starting... Logs are collapsed to keep things clean."
-          echo "::group::Compiler Output (Click to expand if needed)"
-          # -quiet reduces the spam, -final optimizes for the RedMagic Snapdragon 8 Elite
+          echo "Starting the real build... This is where the 30-minute wait begins."
+          echo "::group::Compiler Output (C++ Generation)"
           haxelib run lime build android -final -quiet
           echo "::endgroup::"
-          echo "Build finished! Searching for APK..."
         shell: bash
 
       - name: Find and Upload APK
