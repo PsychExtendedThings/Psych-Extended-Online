@@ -2,16 +2,13 @@ name: Android Build + Release
 on:
   workflow_dispatch:
   push:
-    branches: [ "dev" ]
+    branches: [ "main" ]
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      # Absolute prompt killer - prevents background hangs
-      GIT_TERMINAL_PROMPT: 0
     
     steps:
       - name: Checkout
@@ -32,11 +29,9 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          set -e
-          echo "--- Setting up Haxelib ---"
           haxelib setup ~/haxelib
           
-          echo "--- Installing Standard Libraries ---"
+          # Install standard libs
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -47,37 +42,25 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
           
-          echo "--- Cloning Custom Libraries (Safe Mode) ---"
-          mkdir -p ~/deps
-          
-          # Using --quiet to prevent log bloat and --depth 1 for speed
-          echo "Cloning: mobile-controls..."
-          git clone --quiet --depth 1 https://github.com/MAJigsaw77/mobile-controls ~/deps/mobile-controls
-          haxelib dev mobile-controls ~/deps/mobile-controls
+          # Force Git to use the Token for ALL requests to prevent the 'Username' hang
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
-          echo "Cloning: linc_luajit..."
-          git clone --quiet --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
-          haxelib dev linc_luajit ~/deps/linc_luajit
-          
-          echo "Cloning: hxCodec..."
-          git clone --quiet --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
-          haxelib dev hxCodec ~/deps/hxCodec
-          
-          echo "Cloning: extension-androidtools..."
-          git clone --quiet --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
-          haxelib dev extension-androidtools ~/deps/extension-androidtools
+          echo "Installing Custom Repos..."
+          haxelib git mobile-controls https://github.com/MAJigsaw77/mobile-controls --quiet
+          haxelib git linc_luajit https://github.com/AndreiRudenko/linc_luajit --quiet
+          haxelib git hxCodec https://github.com/polybiusproxy/hxCodec --quiet
+          haxelib git extension-androidtools https://github.com/MAJigsaw77/extension-androidtools --quiet
 
-          echo "--- Finalizing Android SDK ---"
+          echo "Finalizing Android SDK..."
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
-          echo "Ready for compilation!"
         shell: bash
 
       - name: Compile APK
         run: |
-          echo "Compiling for RedMagic Astra... this will take some time."
+          echo "Starting the long C++ build for RedMagic Astra..."
           haxelib run lime build android -final
         shell: bash
 
@@ -85,7 +68,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: success()
         with:
-          tag_name: "astra-build-${{ github.run_number }}"
+          tag_name: "astra-v${{ github.run_number }}"
           name: "Psych Online Android Build #${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
         env:
