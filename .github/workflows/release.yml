@@ -1,58 +1,71 @@
-name: Build + Release
+name: Android Build + Release
 on:
-  workflow_dispatch: # Allows manual trigger from the Actions tab
+  workflow_dispatch: # Allows manual trigger from Actions tab
   push:
-    branches: [ "main" ] # Triggers on push to main
-    tags:
-      - 'v*' # Triggers when you create a tag (e.g., v1.0)
+    branches: [ "main" ]
+    tags: [ 'v*' ]
 
 jobs:
-  buildWindows:
-    runs-on: windows-latest
+  build-android:
+    runs-on: ubuntu-latest
     permissions:
-      contents: write # CRITICAL: Allows the action to create the release
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true # Essential for Psych Engine dependencies
+          submodules: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v1
         with:
           haxe-version: 4.2.5
 
-      - name: Install Libraries
+      - name: Install Dependencies
         run: |
           haxelib setup ~/haxelib
-          haxelib install lime 8.0.1
-          haxelib install openfl 9.2.1
-          haxelib install flixel 5.2.2
-          haxelib install flixel-addons 3.0.2
-          haxelib install flixel-ui
-          haxelib install hxvlc
-          haxelib git linc_luajit https://github.com/superpowers04/linc_luajit
-          haxelib git hxCodec https://github.com/polybiusproxy/hxCodec
-          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+          haxelib install lime 8.0.1 --quiet
+          haxelib install openfl 9.2.1 --quiet
+          haxelib install flixel 5.2.2 --quiet
+          haxelib install flixel-addons 3.0.2 --quiet
+          haxelib install flixel-ui --quiet
+          haxelib install flixel-tools --quiet
+          haxelib install hxvlc --quiet
+          haxelib install tjson --quiet
+          haxelib git linc_luajit https://github.com/jigsaw-4277821/linc_luajit --quiet
+          haxelib git hxCodec https://github.com/polybiusproxy/hxCodec --quiet
+          haxelib git extension-androidtools https://github.com/jigsaw-4277821/extension-androidtools --quiet
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc --quiet
+          haxelib run lime setup android
+          # Link the GitHub Runner's Android paths to Lime
+          haxelib run lime config ANDROID_SDK $ANDROID_HOME
+          haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
-        shell: pwsh
+        shell: bash
 
-      - name: Compile
-        run: haxelib run lime build windows -release -D HXCPP_CHECK_POINTER
-        # -D HXCPP_CHECK_POINTER helps prevent silent crashes during C++ linking
-
-      - name: Zip Build
+      - name: Final Optimizations
         run: |
-          cd export/release/windows/bin
-          7z a ../../../../PsychOnline-Windows.zip *
-        shell: pwsh
+          # Ensure certain folders exist to prevent compile crashes
+          mkdir -p export/release/android/bin
+        shell: bash
+
+      - name: Compile APK
+        # -final is best for your RedMagic Astra performance
+        run: haxelib run lime build android -final
+        shell: bash
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        if: always()
         with:
-          name: "Psych Online Extended Build"
-          tag_name: "latest-build"
-          files: PsychOnline-Windows.zip
+          tag_name: "android-astra-${{ github.run_number }}"
+          name: "Psych Online Android - Build #${{ github.run_number }}"
+          files: export/release/android/bin/app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
