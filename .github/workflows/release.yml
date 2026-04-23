@@ -32,12 +32,12 @@ jobs:
       - name: Install Dependencies
         run: |
           set -e
-          # Universal Authentication Lock
+          # Stop the "Username" prompt from killing the build
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           
           haxelib setup ~/haxelib
           
-          echo "--- 1. Base Game Libraries ---"
+          echo "--- 1. Base Frameworks ---"
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -45,23 +45,24 @@ jobs:
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
           haxelib install tjson --quiet
-          haxelib install discord_rpc --quiet
           haxelib install hxvlc --quiet
+          haxelib install discord_rpc --quiet
 
-          echo "--- 2. Networking Stack (Psych Online Support) ---"
-          # Colyseus needs these 'tink' libraries to function
+          echo "--- 2. Networking & HTML (The Missing Pieces) ---"
+          haxelib install colyseus --quiet
+          haxelib install colyseus-websocket --quiet
           haxelib install tink_url --quiet
           haxelib install tink_http --quiet
-          haxelib install colyseus-websocket --quiet
-          haxelib install colyseus --quiet
+          # FIX: Adding the HtmlParser library for online data handling
+          haxelib install HtmlParser --quiet
 
-          echo "--- 3. Scripting & Visuals (Psych Extended) ---"
+          echo "--- 3. Scripting & Visuals ---"
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
 
-          echo "--- 4. Porting & Tools ---"
+          echo "--- 4. Custom Mobile Porting Deps ---"
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
@@ -75,7 +76,7 @@ jobs:
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- 5. Final Android Setup ---"
+          echo "--- 5. Final Android System Config ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -84,7 +85,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Building for RedMagic Astra... this is the long C++ phase."
+          echo "Compiling for RedMagic Astra... This will take a while, don't interrupt it."
           haxelib run lime build android -final
         shell: bash
 
