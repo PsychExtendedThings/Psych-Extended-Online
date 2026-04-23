@@ -2,7 +2,7 @@ name: Android Build + Release
 on:
   workflow_dispatch:
   push:
-    branches: [ "dev" ]
+    branches: [ "main" ]
 
 jobs:
   build-android:
@@ -10,6 +10,7 @@ jobs:
     permissions:
       contents: write
     env:
+      # Absolute prompt killer - prevents background hangs
       GIT_TERMINAL_PROMPT: 0
     
     steps:
@@ -32,10 +33,10 @@ jobs:
       - name: Install Dependencies
         run: |
           set -e
-          echo "Setting up Haxelib..."
+          echo "--- Setting up Haxelib ---"
           haxelib setup ~/haxelib
           
-          echo "Installing Standard Libraries..."
+          echo "--- Installing Standard Libraries ---"
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -46,33 +47,37 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
           
-          echo "Cloning Custom Libraries (Manual Mode)..."
+          echo "--- Cloning Custom Libraries (Safe Mode) ---"
           mkdir -p ~/deps
           
-          # Fix for mobile-controls
-          git clone --depth 1 https://github.com/MAJigsaw77/mobile-controls ~/deps/mobile-controls
+          # Using --quiet to prevent log bloat and --depth 1 for speed
+          echo "Cloning: mobile-controls..."
+          git clone --quiet --depth 1 https://github.com/MAJigsaw77/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
 
-          # Your verified dependencies
-          git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
+          echo "Cloning: linc_luajit..."
+          git clone --quiet --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
-          git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
+          echo "Cloning: hxCodec..."
+          git clone --quiet --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
-          git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
+          echo "Cloning: extension-androidtools..."
+          git clone --quiet --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "Finalizing Android SDK Connection..."
+          echo "--- Finalizing Android SDK ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
+          echo "Ready for compilation!"
         shell: bash
 
       - name: Compile APK
         run: |
-          echo "Compiling for RedMagic Astra... this is the long background process."
+          echo "Compiling for RedMagic Astra... this will take some time."
           haxelib run lime build android -final
         shell: bash
 
@@ -80,7 +85,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: success()
         with:
-          tag_name: "astra-v${{ github.run_number }}"
+          tag_name: "astra-build-${{ github.run_number }}"
           name: "Psych Online Android Build #${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
         env:
