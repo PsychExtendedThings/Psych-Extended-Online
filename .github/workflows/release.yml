@@ -32,12 +32,12 @@ jobs:
       - name: Install Dependencies
         run: |
           set -e
-          # Universal Authentication Lock to prevent Git Clone Errors
+          # Universal Auth Fix for Private/Redirected Repos
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           
           haxelib setup ~/haxelib
           
-          echo "--- 1. Base Frameworks & Core ---"
+          echo "--- 1. Base Game & UI ---"
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -45,35 +45,32 @@ jobs:
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
           haxelib install tjson --quiet
-          haxelib install json2object --quiet
           haxelib install hxvlc --quiet
-          
-          echo "--- 2. RPC, Audio & Parsers (The 'Hidden' Ones) ---"
-          haxelib install discord_rpc --quiet
-          haxelib install hxdiscord_rpc --quiet
-          haxelib install grig.audio --quiet
           haxelib install actuate --quiet
-          haxelib install yaml --quiet
-          haxelib install markdown --quiet
 
-          echo "--- 3. Networking, HTML & Versioning ---"
+          echo "--- 2. Networking & HTML (Psych Online) ---"
           haxelib install colyseus --quiet
           haxelib install colyseus-websocket --quiet
           haxelib install tink_url --quiet
           haxelib install tink_http --quiet
           haxelib install HtmlParser --quiet
-          haxelib install thx.core --quiet
-          haxelib install thx.semver --quiet
+          haxelib install http-status --quiet
 
-          echo "--- 4. Scripting, Visuals & Extraction (Git Repos) ---"
-          haxelib git polymod https://github.com/larsiusprime/polymod.git --quiet
+          echo "--- 3. 3D & System Tools (Extended Features) ---"
+          haxelib install away3d --quiet
+          haxelib install systools --quiet
+          haxelib install discord_rpc --quiet
+          haxelib install hxdiscord_rpc --quiet
+
+          echo "--- 4. Scripting & Visual Git Repos ---"
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
           haxelib git UnRAR https://github.com/Snirozu/Haxe-UnRAR --quiet
+          haxelib git polymod https://github.com/larsiusprime/polymod.git --quiet
 
-          echo "--- 5. Custom Mobile Porting Deps ---"
+          echo "--- 5. Mobile Porting Deps ---"
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
@@ -87,7 +84,10 @@ jobs:
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- 6. Final Android System Config ---"
+          echo "--- 6. Verification ---"
+          haxelib list
+
+          echo "--- 7. Android System Setup ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -96,7 +96,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Compiling for RedMagic Astra... We have every library possible installed."
+          echo "Starting the final build for RedMagic Astra... focusing on Snapdragon 8 Elite optimization."
           haxelib run lime build android -final
         shell: bash
 
