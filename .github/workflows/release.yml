@@ -36,7 +36,7 @@ jobs:
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           haxelib setup ~/haxelib
           
-          # Frameworks
+          # Frameworks (Stable on Haxelib)
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -61,19 +61,19 @@ jobs:
           haxelib install yaml --quiet
           haxelib install markdown --quiet
           
-          # Scripting & Utilities
+          # Scripting & Utilities (Switched to Git where Haxelib fails)
           haxelib install lumod --quiet
           haxelib install away3d --quiet
           haxelib install systools --quiet
           haxelib install actuate --quiet
           haxelib install discord_rpc --quiet
           haxelib install hscript --quiet
-          haxelib install hscript-ex --quiet
-          haxelib install hx-lua --quiet
           haxelib install compiletime --quiet
-          haxelib install vector-math --quiet
+          haxelib git hx-lua https://github.com/larsiusprime/hx-lua.git --quiet
+          haxelib git hscript-ex https://github.com/ianarrgh/hscript-ex.git --quiet
+          haxelib git vector-math https://github.com/Tw1ddle/geometrize-haxe-vector-math.git --quiet
 
-          # Git-Direct Installs (Bypassing Haxelib Server Errors)
+          # Git-Direct Installs
           haxelib git hxGeomAlgo https://github.com/azrafe7/hxGeomAlgo.git --quiet
           haxelib git grig.core https://github.com/grig-org/grig.core.git --quiet
           haxelib git grig.audio https://github.com/grig-org/grig.audio.git --quiet
