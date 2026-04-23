@@ -9,7 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: write
+    env:
+      # This kills the "Password" prompt forever
+      GIT_TERMINAL_PROMPT: 0
     
     steps:
       - name: Checkout
@@ -30,10 +32,9 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          echo "--- STARTING HAXELIB SETUP ---"
-          haxelib setup ~/haxelib
+          set -x # This makes the server show you EVERY command it runs
           
-          echo "--- INSTALLING LIBRARIES ---"
+          haxelib setup ~/haxelib
           haxelib install lime 8.0.1
           haxelib install openfl 9.2.1
           haxelib install flixel 5.2.2
@@ -44,37 +45,33 @@ jobs:
           haxelib install tjson
           haxelib install discord_rpc
 
-          echo "--- CONFIGURING GIT AUTH ---"
-          # This injects the internal token so Git doesn't ask for a Username
-          git config --global url."https://${{ github.token }}@github.com/".insteadOf "https://github.com/"
+          # Use the official 'x-access-token' method for the clones
+          # This provides the "Read/Write" access you asked for
+          TOKEN_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com"
           
-          echo "--- CLONING JIGSAW LIBRARIES ---"
           mkdir -p ~/deps
           
           echo "Cloning linc_luajit..."
-          git clone --depth 1 https://github.com/jigsaw-4277821/linc_luajit ~/deps/linc_luajit
+          git clone --depth 1 $TOKEN_URL/jigsaw-4277821/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
           echo "Cloning hxCodec..."
-          git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
+          git clone --depth 1 $TOKEN_URL/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
           echo "Cloning extension-androidtools..."
-          git clone --depth 1 https://github.com/jigsaw-4277821/extension-androidtools ~/deps/extension-androidtools
+          git clone --depth 1 $TOKEN_URL/jigsaw-4277821/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- LINKING ANDROID SDK ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
-          
-          echo "--- ALL DEPENDENCIES INSTALLED ---"
         shell: bash
 
       - name: Compile APK
         run: |
-          echo "Starting the main C++ compilation for RedMagic Astra..."
+          # The background work starts here!
           haxelib run lime build android -final
         shell: bash
 
@@ -82,7 +79,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: success()
         with:
-          tag_name: "android-build-${{ github.run_number }}"
+          tag_name: "astra-android-${{ github.run_number }}"
           name: "Psych Online Android Build #${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
         env:
