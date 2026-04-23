@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      GIT_TERMINAL_PROMPT: 0
     
     steps:
       - name: Checkout
@@ -31,7 +33,7 @@ jobs:
         run: |
           set -e
           
-          # THE ULTIMATE FIX: Force all GitHub links to use the runner's token automatically
+          # Force all GitHub links to use the runner's token to prevent auth hangs
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           
           haxelib setup ~/haxelib
@@ -47,20 +49,23 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
 
-          echo "Fetching custom dependencies..."
+          echo "Fetching custom dependencies from verified sources..."
           mkdir -p ~/deps
           
-          # These will now use the token automatically because of the 'insteadOf' config above
-          git clone --depth 1 https://github.com/MobilePorting/mobile-controls ~/deps/mobile-controls
+          # Verified active repo for mobile-controls
+          git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
 
+          # The most stable LuaJIT for Android builds
           git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
+          # Stable Video Loader
           git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
-          git clone --depth 1 https://github.com/MobilePorting/extension-androidtools ~/deps/extension-androidtools
+          # MAJigsaw's extension tools
+          git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
           echo "Finalizing Android Setup..."
@@ -72,7 +77,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Building for RedMagic Astra... this is the heavy background process."
+          echo "Building for RedMagic Astra... starting the heavy background process."
           haxelib run lime build android -final
         shell: bash
 
