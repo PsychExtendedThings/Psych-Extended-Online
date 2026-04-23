@@ -32,30 +32,28 @@ jobs:
       - name: Install Dependencies
         run: |
           set -e
-          # Universal Git Auth Fix
+          # Stop the "Username" prompt from killing the build
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           
           haxelib setup ~/haxelib
           
-          echo "--- Installing Core Libraries ---"
+          echo "--- Standard Libraries ---"
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
           haxelib install flixel-addons 3.0.2 --quiet
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
+          haxelib install hxvlc --quiet
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
           
-          echo "--- Installing Scripting & Video Support ---"
-          # These are essential for Psych Online's custom code
-          haxelib install hscript-improved --quiet
-          haxelib install hxvlc --quiet
+          echo "--- Scripting Fix ---"
+          # This was the missing link! Installing from the official dev repo:
+          haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
 
-          echo "--- Fetching Custom Dependencies ---"
+          echo "--- Custom Dependencies ---"
           mkdir -p ~/deps
-          
-          # Using verified active repos
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
 
@@ -68,7 +66,7 @@ jobs:
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- Finalizing Android Setup ---"
+          echo "--- Android SDK Connection ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -77,7 +75,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Starting the long C++ build for RedMagic Astra..."
+          echo "Building for RedMagic Astra... this is the long compilation phase."
           haxelib run lime build android -final
         shell: bash
 
