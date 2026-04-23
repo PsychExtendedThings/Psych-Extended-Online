@@ -1,15 +1,15 @@
 name: Android Build + Release
 on:
-  workflow_dispatch: # Allows manual trigger from Actions tab
+  workflow_dispatch:
   push:
     branches: [ "main" ]
-    tags: [ 'v*' ]
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,6 +29,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          # 1. Basic Haxelib Setup
           haxelib setup ~/haxelib
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
@@ -38,34 +39,42 @@ jobs:
           haxelib install flixel-tools --quiet
           haxelib install hxvlc --quiet
           haxelib install tjson --quiet
-          haxelib git linc_luajit https://github.com/jigsaw-4277821/linc_luajit --quiet
-          haxelib git hxCodec https://github.com/polybiusproxy/hxCodec --quiet
-          haxelib git extension-androidtools https://github.com/jigsaw-4277821/extension-androidtools --quiet
-          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc --quiet
+          haxelib install discord_rpc --quiet
+
+          # 2. Fix Read/Write Auth for GitHub
+          git config --global url."https://${{ github.token }}@github.com/".insteadOf "https://github.com/"
+          
+          # 3. Manual Clone of Dev/Master branches (Bypasses the "Username" error)
+          mkdir -p ~/deps
+          
+          git clone --depth 1 https://github.com/jigsaw-4277821/linc_luajit ~/deps/linc_luajit
+          haxelib dev linc_luajit ~/deps/linc_luajit
+          
+          git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
+          haxelib dev hxCodec ~/deps/hxCodec
+          
+          git clone --depth 1 https://github.com/jigsaw-4277821/extension-androidtools ~/deps/extension-androidtools
+          haxelib dev extension-androidtools ~/deps/extension-androidtools
+
+          # 4. Finalize Android Environment
           haxelib run lime setup android
-          # Link the GitHub Runner's Android paths to Lime
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
         shell: bash
 
-      - name: Final Optimizations
-        run: |
-          # Ensure certain folders exist to prevent compile crashes
-          mkdir -p export/release/android/bin
-        shell: bash
-
       - name: Compile APK
-        # -final is best for your RedMagic Astra performance
-        run: haxelib run lime build android -final
+        run: |
+          # Build with -final for maximum optimization on the Snapdragon 8 Elite
+          haxelib run lime build android -final
         shell: bash
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
-        if: always()
+        if: success()
         with:
-          tag_name: "android-astra-${{ github.run_number }}"
-          name: "Psych Online Android - Build #${{ github.run_number }}"
+          tag_name: "android-astra-v${{ github.run_number }}"
+          name: "Psych Online Android Build #${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
