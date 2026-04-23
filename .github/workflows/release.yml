@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: write
     env:
-      GIT_TERMINAL_PROMPT: 0
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     steps:
       - name: Checkout
@@ -32,32 +32,32 @@ jobs:
       - name: Install Dependencies
         run: |
           set -e
-          # Stop the "Username" prompt from killing the build
+          # FORCE all git commands to use the runner's token for zero-auth errors
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           
           haxelib setup ~/haxelib
           
-          echo "--- Standard Libraries ---"
+          echo "--- 1. Base Frameworks ---"
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
           haxelib install flixel-addons 3.0.2 --quiet
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
-          haxelib install hxvlc --quiet
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
-          
-          echo "--- Scripting & Animation Extras ---"
-          haxelib git SScript https://github.com/TheWorldMachinima/SScript.git --quiet
+          haxelib install hxvlc --quiet
+
+          echo "--- 2. Scripting & Visuals (Fixed URLs) ---"
+          # SScript for Psych 0.7+ and Extended
+          haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
+          # Official hscript-improved for Codename/Psych integration
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
 
-          echo "--- Mobile & Porting Libraries ---"
+          echo "--- 3. Porting & Tools ---"
           mkdir -p ~/deps
-          
-          # Verified active repo for mobile controls
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
 
@@ -70,7 +70,7 @@ jobs:
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- Finalizing Android Setup ---"
+          echo "--- 4. Final System Config ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -79,7 +79,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Starting the long C++ build for RedMagic Astra..."
+          echo "Compiling for RedMagic Astra... Grab a coffee, this will take 20+ mins."
           haxelib run lime build android -final
         shell: bash
 
@@ -88,7 +88,5 @@ jobs:
         if: success()
         with:
           tag_name: "astra-v${{ github.run_number }}"
-          name: "Psych Online Android Build #${{ github.run_number }}"
+          name: "Psych Online Extended Build #${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
