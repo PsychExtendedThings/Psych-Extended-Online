@@ -10,7 +10,8 @@ jobs:
     permissions:
       contents: write
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Prevents Git from asking for any manual input
+      GIT_TERMINAL_PROMPT: 0
     
     steps:
       - name: Checkout
@@ -45,20 +46,22 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
 
-          echo "Using GitHub CLI to bypass cloning errors..."
+          echo "Fetching custom dependencies using Token-URL method..."
           mkdir -p ~/deps
           
-          # Force use of HTTPS and the built-in token
-          gh repo clone MAJigsaw77/mobile-controls ~/deps/mobile-controls
+          # Using the secret token directly in the URL to bypass all login prompts
+          AUTH_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com"
+
+          git clone --depth 1 $AUTH_URL/MAJigsaw77/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
 
-          gh repo clone AndreiRudenko/linc_luajit ~/deps/linc_luajit
+          git clone --depth 1 $AUTH_URL/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
-          gh repo clone polybiusproxy/hxCodec ~/deps/hxCodec
+          git clone --depth 1 $AUTH_URL/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
-          gh repo clone MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
+          git clone --depth 1 $AUTH_URL/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
           echo "Finalizing Android Setup..."
@@ -70,16 +73,16 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Building for RedMagic Astra... this is the heavy background work."
-          # If this fails, the next step will not run by default.
+          echo "Building for RedMagic Astra... starting the heavy background process."
           haxelib run lime build android -final
         shell: bash
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
-        # This only runs if the 'Compile APK' step was 100% successful
         if: success()
         with:
           tag_name: "astra-v${{ github.run_number }}"
           name: "Psych Online Android Build #${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
