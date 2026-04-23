@@ -32,12 +32,12 @@ jobs:
       - name: Install Dependencies
         run: |
           set -e
-          # Stop the "Username" prompt from killing the build
+          # Universal Authentication Lock to prevent Git Clone Errors
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           
           haxelib setup ~/haxelib
           
-          echo "--- 1. Base Frameworks ---"
+          echo "--- 1. Base Frameworks & Core ---"
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -45,24 +45,35 @@ jobs:
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
           haxelib install tjson --quiet
+          haxelib install json2object --quiet
           haxelib install hxvlc --quiet
+          
+          echo "--- 2. RPC, Audio & Parsers (The 'Hidden' Ones) ---"
           haxelib install discord_rpc --quiet
+          haxelib install hxdiscord_rpc --quiet
+          haxelib install grig.audio --quiet
+          haxelib install actuate --quiet
+          haxelib install yaml --quiet
+          haxelib install markdown --quiet
 
-          echo "--- 2. Networking & HTML (The Missing Pieces) ---"
+          echo "--- 3. Networking, HTML & Versioning ---"
           haxelib install colyseus --quiet
           haxelib install colyseus-websocket --quiet
           haxelib install tink_url --quiet
           haxelib install tink_http --quiet
-          # FIX: Adding the HtmlParser library for online data handling
           haxelib install HtmlParser --quiet
+          haxelib install thx.core --quiet
+          haxelib install thx.semver --quiet
 
-          echo "--- 3. Scripting & Visuals ---"
+          echo "--- 4. Scripting, Visuals & Extraction (Git Repos) ---"
+          haxelib git polymod https://github.com/larsiusprime/polymod.git --quiet
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
+          haxelib git UnRAR https://github.com/Snirozu/Haxe-UnRAR --quiet
 
-          echo "--- 4. Custom Mobile Porting Deps ---"
+          echo "--- 5. Custom Mobile Porting Deps ---"
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
@@ -76,7 +87,7 @@ jobs:
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- 5. Final Android System Config ---"
+          echo "--- 6. Final Android System Config ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -85,7 +96,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Compiling for RedMagic Astra... This will take a while, don't interrupt it."
+          echo "Compiling for RedMagic Astra... We have every library possible installed."
           haxelib run lime build android -final
         shell: bash
 
