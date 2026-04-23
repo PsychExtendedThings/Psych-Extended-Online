@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: write
     env:
-      # This kills the "Password" prompt forever
+      # CRITICAL: Tells Git to fail immediately instead of waiting for a password
       GIT_TERMINAL_PROMPT: 0
     
     steps:
@@ -32,46 +32,52 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          set -x # This makes the server show you EVERY command it runs
+          set -e # Stops the script if a library fails
           
+          echo "Initializing Haxelib..."
           haxelib setup ~/haxelib
-          haxelib install lime 8.0.1
-          haxelib install openfl 9.2.1
-          haxelib install flixel 5.2.2
-          haxelib install flixel-addons 3.0.2
-          haxelib install flixel-ui
-          haxelib install flixel-tools
-          haxelib install hxvlc
-          haxelib install tjson
-          haxelib install discord_rpc
-
-          # Use the official 'x-access-token' method for the clones
-          # This provides the "Read/Write" access you asked for
-          TOKEN_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com"
           
+          echo "Installing Base Game Libraries..."
+          haxelib install lime 8.0.1 --quiet
+          haxelib install openfl 9.2.1 --quiet
+          haxelib install flixel 5.2.2 --quiet
+          haxelib install flixel-addons 3.0.2 --quiet
+          haxelib install flixel-ui --quiet
+          haxelib install flixel-tools --quiet
+          haxelib install hxvlc --quiet
+          haxelib install tjson --quiet
+          haxelib install discord_rpc --quiet
+
+          echo "Configuring Authentication-Free Git..."
+          # This forces Git to use standard HTTPS which doesn't trigger the 'Password' prompt
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+
+          echo "Fetching Custom Android Dependencies..."
           mkdir -p ~/deps
           
-          echo "Cloning linc_luajit..."
-          git clone --depth 1 $TOKEN_URL/jigsaw-4277821/linc_luajit ~/deps/linc_luajit
+          # We use depth 1 to save time and prevent timeout errors
+          git clone --depth 1 https://github.com/jigsaw-4277821/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
-          echo "Cloning hxCodec..."
-          git clone --depth 1 $TOKEN_URL/polybiusproxy/hxCodec ~/deps/hxCodec
+          git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
-          echo "Cloning extension-androidtools..."
-          git clone --depth 1 $TOKEN_URL/jigsaw-4277821/extension-androidtools ~/deps/extension-androidtools
+          git clone --depth 1 https://github.com/jigsaw-4277821/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
+          echo "Configuring Android SDK/NDK..."
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
           haxelib run lime setup
+          echo "Environment Ready!"
         shell: bash
 
       - name: Compile APK
         run: |
-          # The background work starts here!
+          echo "Starting the C++ Transpilation..."
+          # -final ensures your RedMagic Astra uses all its cores for max FPS
           haxelib run lime build android -final
         shell: bash
 
@@ -79,8 +85,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: success()
         with:
-          tag_name: "astra-android-${{ github.run_number }}"
-          name: "Psych Online Android Build #${{ github.run_number }}"
+          tag_name: "astra-v${{ github.run_number }}"
+          name: "Psych Online Android - Build ${{ github.run_number }}"
           files: export/release/android/bin/app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
