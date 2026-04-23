@@ -44,7 +44,12 @@ jobs:
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
           haxelib install hxvlc --quiet
-          haxelib install compiletime --quiet # <--- The Missing Piece
+          haxelib install compiletime --quiet
+          haxelib install vector-math --quiet
+          
+          # Audio & DSP Stack
+          haxelib install grig.audio --quiet
+          haxelib install grig.core --quiet
           
           # Networking & Data
           haxelib install tjson --quiet
@@ -59,6 +64,8 @@ jobs:
           haxelib install colyseus --quiet
           haxelib install colyseus-websocket --quiet
           haxelib install HtmlParser --quiet
+          haxelib install yaml --quiet
+          haxelib install markdown --quiet
           
           # Visuals & Scripting Bridges
           haxelib install lumod --quiet
@@ -68,6 +75,7 @@ jobs:
           haxelib install discord_rpc --quiet
           haxelib install hscript --quiet
           haxelib install hscript-ex --quiet
+          haxelib install hx-lua --quiet
           
           # Git Repos
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
@@ -94,9 +102,10 @@ jobs:
           echo "::endgroup::"
         shell: bash
 
-      - name: Compile APK (Clean Build)
+      - name: Compile APK
         run: |
           echo "::group::Compiler Output"
+          # Quiet flag to keep logs manageable, Final for RedMagic performance
           haxelib run lime build android -final -quiet
           echo "::endgroup::"
         shell: bash
