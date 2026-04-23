@@ -10,7 +10,6 @@ jobs:
     permissions:
       contents: write
     env:
-      # Prevents Git from asking for any manual input
       GIT_TERMINAL_PROMPT: 0
     
     steps:
@@ -46,22 +45,20 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
 
-          echo "Fetching custom dependencies using Token-URL method..."
+          echo "Fetching custom dependencies from verified MobilePorting paths..."
           mkdir -p ~/deps
           
-          # Using the secret token directly in the URL to bypass all login prompts
-          AUTH_URL="https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com"
-
-          git clone --depth 1 $AUTH_URL/MAJigsaw77/mobile-controls ~/deps/mobile-controls
+          # We use clean HTTPS links. These are the current active repos.
+          git clone --depth 1 https://github.com/MobilePorting/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
 
-          git clone --depth 1 $AUTH_URL/AndreiRudenko/linc_luajit ~/deps/linc_luajit
+          git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit ~/deps/linc_luajit
           haxelib dev linc_luajit ~/deps/linc_luajit
           
-          git clone --depth 1 $AUTH_URL/polybiusproxy/hxCodec ~/deps/hxCodec
+          git clone --depth 1 https://github.com/polybiusproxy/hxCodec ~/deps/hxCodec
           haxelib dev hxCodec ~/deps/hxCodec
           
-          git clone --depth 1 $AUTH_URL/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
+          git clone --depth 1 https://github.com/MobilePorting/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
           echo "Finalizing Android Setup..."
