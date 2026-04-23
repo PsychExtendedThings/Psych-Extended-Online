@@ -48,12 +48,16 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
           
-          echo "--- Scripting Fix ---"
-          # This was the missing link! Installing from the official dev repo:
+          echo "--- Scripting & Animation Extras ---"
+          haxelib git SScript https://github.com/TheWorldMachinima/SScript.git --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
+          haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
+          haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
 
-          echo "--- Custom Dependencies ---"
+          echo "--- Mobile & Porting Libraries ---"
           mkdir -p ~/deps
+          
+          # Verified active repo for mobile controls
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
 
@@ -66,7 +70,7 @@ jobs:
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- Android SDK Connection ---"
+          echo "--- Finalizing Android Setup ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -75,7 +79,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Building for RedMagic Astra... this is the long compilation phase."
+          echo "Starting the long C++ build for RedMagic Astra..."
           haxelib run lime build android -final
         shell: bash
 
