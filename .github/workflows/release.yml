@@ -9,8 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      GIT_TERMINAL_PROMPT: 0
     
     steps:
       - name: Checkout
@@ -32,6 +30,10 @@ jobs:
       - name: Install Dependencies
         run: |
           set -e
+          
+          # THE ULTIMATE FIX: Force all GitHub links to use the runner's token automatically
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          
           haxelib setup ~/haxelib
           
           echo "Installing Standard Libraries..."
@@ -45,10 +47,10 @@ jobs:
           haxelib install tjson --quiet
           haxelib install discord_rpc --quiet
 
-          echo "Fetching custom dependencies from verified MobilePorting paths..."
+          echo "Fetching custom dependencies..."
           mkdir -p ~/deps
           
-          # We use clean HTTPS links. These are the current active repos.
+          # These will now use the token automatically because of the 'insteadOf' config above
           git clone --depth 1 https://github.com/MobilePorting/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
 
@@ -70,7 +72,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Building for RedMagic Astra... starting the heavy background process."
+          echo "Building for RedMagic Astra... this is the heavy background process."
           haxelib run lime build android -final
         shell: bash
 
