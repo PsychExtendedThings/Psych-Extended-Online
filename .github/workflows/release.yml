@@ -32,12 +32,12 @@ jobs:
       - name: Install Dependencies
         run: |
           set -e
-          # FORCE all git commands to use the runner's token for zero-auth errors
+          # Universal Authentication Lock
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           
           haxelib setup ~/haxelib
           
-          echo "--- 1. Base Frameworks ---"
+          echo "--- 1. Base Game Libraries ---"
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -48,15 +48,20 @@ jobs:
           haxelib install discord_rpc --quiet
           haxelib install hxvlc --quiet
 
-          echo "--- 2. Scripting & Visuals (Fixed URLs) ---"
-          # SScript for Psych 0.7+ and Extended
+          echo "--- 2. Networking Stack (Psych Online Support) ---"
+          # Colyseus needs these 'tink' libraries to function
+          haxelib install tink_url --quiet
+          haxelib install tink_http --quiet
+          haxelib install colyseus-websocket --quiet
+          haxelib install colyseus --quiet
+
+          echo "--- 3. Scripting & Visuals (Psych Extended) ---"
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
-          # Official hscript-improved for Codename/Psych integration
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
 
-          echo "--- 3. Porting & Tools ---"
+          echo "--- 4. Porting & Tools ---"
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
@@ -70,7 +75,7 @@ jobs:
           git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools ~/deps/extension-androidtools
           haxelib dev extension-androidtools ~/deps/extension-androidtools
 
-          echo "--- 4. Final System Config ---"
+          echo "--- 5. Final Android Setup ---"
           haxelib run lime setup android
           haxelib run lime config ANDROID_SDK $ANDROID_HOME
           haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -79,7 +84,7 @@ jobs:
 
       - name: Compile APK
         run: |
-          echo "Compiling for RedMagic Astra... Grab a coffee, this will take 20+ mins."
+          echo "Building for RedMagic Astra... this is the long C++ phase."
           haxelib run lime build android -final
         shell: bash
 
