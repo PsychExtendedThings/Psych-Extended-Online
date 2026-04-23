@@ -1,68 +1,58 @@
-name: Build Psych Extended Online + Release
-on: workflow_dispatch
-
-permissions:
-  contents: write
-  discussions: write
-
-env:
-  PROJECT_NAME: PsychExtendedOnline
+name: Build + Release
+on:
+  workflow_dispatch: # Allows manual trigger from the Actions tab
+  push:
+    branches: [ "main" ] # Triggers on push to main
+    tags:
+      - 'v*' # Triggers when you create a tag (e.g., v1.0)
 
 jobs:
-  build:
-    name: ${{ matrix.name }}
-    strategy:
-      matrix:
-        include:
-          - name: Android
-            os: macos-15
-            buildArgs: "android -final -D officialBuild"
-            artifactName: androidBuild
-            artifactPath: "export/release/android/bin/app/build/outputs/apk/release/*.apk"
-          - name: iOS
-            os: macos-15
-            buildArgs: "ios -final -nosign -D officialBuild"
-            artifactName: iOSBuild
-            artifactPath: "export/release/ios/build/Release-iphoneos/*.ipa"
-    uses: ./.github/workflows/build.yml
-    with:
-        name: ${{ matrix.name }}
-        os: ${{ matrix.os }}
-        buildArgs: ${{ matrix.buildArgs }}
-        artifactName: ${{ matrix.artifactName }}
-        artifactPath: ${{ matrix.artifactPath }}
-
-  Releaser:
-    needs: [build]
-    runs-on: ubuntu-latest
-    permissions: write-all
+  buildWindows:
+    runs-on: windows-latest
+    permissions:
+      contents: write # CRITICAL: Allows the action to create the release
     steps:
-      - name: Download Android Build
-        uses: actions/download-artifact@main
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          name: androidBuild
-          path: /home/runner
+          submodules: true # Essential for Psych Engine dependencies
 
-      - name: Move Android File
-        run: mv /home/runner/${{ env.PROJECT_NAME }}-release.apk /home/runner/${{ env.PROJECT_NAME }}-Android.apk
-
-      - name: Download iOS Build
-        uses: actions/download-artifact@main
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
         with:
-          name: iOSBuild
-          path: ${{ github.workspace }}
+          haxe-version: 4.2.5
 
-      - name: Move iOS File
-        run: mv ${{ github.workspace }}/${{ env.PROJECT_NAME }}.ipa /home/runner/${{ env.PROJECT_NAME }}-iOS.ipa
+      - name: Install Libraries
+        run: |
+          haxelib setup ~/haxelib
+          haxelib install lime 8.0.1
+          haxelib install openfl 9.2.1
+          haxelib install flixel 5.2.2
+          haxelib install flixel-addons 3.0.2
+          haxelib install flixel-ui
+          haxelib install hxvlc
+          haxelib git linc_luajit https://github.com/superpowers04/linc_luajit
+          haxelib git hxCodec https://github.com/polybiusproxy/hxCodec
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+          haxelib run lime setup
+        shell: pwsh
 
-      - name: Publish The Release
-        uses: softprops/action-gh-release@v2
+      - name: Compile
+        run: haxelib run lime build windows -release -D HXCPP_CHECK_POINTER
+        # -D HXCPP_CHECK_POINTER helps prevent silent crashes during C++ linking
+
+      - name: Zip Build
+        run: |
+          cd export/release/windows/bin
+          7z a ../../../../PsychOnline-Windows.zip *
+        shell: pwsh
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          name: "0.1.0"
-          tag_name: "0.1.0"
-          prerelease: false
-          files: |
-            /home/runner/*.apk
-            /home/runner/*.ipa
-            /home/runner/*.tar
-            /home/runner/*.zip
+          name: "Psych Online Extended Build"
+          tag_name: "latest-build"
+          files: PsychOnline-Windows.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
