@@ -36,7 +36,7 @@ jobs:
           git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
           haxelib setup ~/haxelib
           
-          # Frameworks & Core Utilities
+          # Frameworks
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -44,13 +44,6 @@ jobs:
           haxelib install flixel-ui --quiet
           haxelib install flixel-tools --quiet
           haxelib install hxvlc --quiet
-          haxelib install compiletime --quiet
-          haxelib install vector-math --quiet
-          haxelib install hxGeomAlgo --quiet
-          
-          # Audio & DSP (The Fix: Git pull instead of haxelib install)
-          haxelib git grig.core https://github.com/grig-org/grig.core.git --quiet
-          haxelib install grig.audio --quiet
           
           # Networking & Data
           haxelib install tjson --quiet
@@ -68,7 +61,7 @@ jobs:
           haxelib install yaml --quiet
           haxelib install markdown --quiet
           
-          # Visuals & Scripting Bridges
+          # Scripting & Utilities
           haxelib install lumod --quiet
           haxelib install away3d --quiet
           haxelib install systools --quiet
@@ -77,16 +70,21 @@ jobs:
           haxelib install hscript --quiet
           haxelib install hscript-ex --quiet
           haxelib install hx-lua --quiet
-          
-          # Git Repos
+          haxelib install compiletime --quiet
+          haxelib install vector-math --quiet
+
+          # Git-Direct Installs (Bypassing Haxelib Server Errors)
+          haxelib git hxGeomAlgo https://github.com/azrafe7/hxGeomAlgo.git --quiet
+          haxelib git grig.core https://github.com/grig-org/grig.core.git --quiet
+          haxelib git grig.audio https://github.com/grig-org/grig.audio.git --quiet
+          haxelib git linc_stb https://github.com/snowkit/linc_stb.git --quiet
           haxelib git SScript https://github.com/Oren-LuckyJackpots/SScript-For-Psych --quiet
           haxelib git hscript-improved https://github.com/CodenameCrew/hscript-improved --quiet
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate --quiet
           haxelib git funkin.vis https://github.com/FunkinCrew/funkVis --quiet
           haxelib git UnRAR https://github.com/Snirozu/Haxe-UnRAR --quiet
-          haxelib git linc_stb https://github.com/snowkit/linc_stb.git --quiet
 
-          # Mobile Porting
+          # Mobile/Native Repos
           mkdir -p ~/deps
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
