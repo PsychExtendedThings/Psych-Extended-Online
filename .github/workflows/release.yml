@@ -29,12 +29,16 @@ jobs:
         with:
           haxe-version: 4.2.5
 
-      - name: Install All Dependencies (Ultra-Manual Mode)
+      - name: Install All Dependencies (Authenticated Mode)
         run: |
           set -e
+          
+          # THE FIX: Force every github.com request to use the token automatically
+          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          
           haxelib setup ~/haxelib
           
-          echo "--- 1. Reliable Standard Libs ---"
+          echo "--- 1. Standard Haxelibs ---"
           haxelib install lime 8.0.1 --quiet
           haxelib install openfl 9.2.1 --quiet
           haxelib install flixel 5.2.2 --quiet
@@ -58,18 +62,16 @@ jobs:
           haxelib install http-status --quiet
           haxelib install HtmlParser --quiet
 
-          echo "--- 2. The Force-Clone List (No More 'No Such Project' Errors) ---"
+          echo "--- 2. Authenticated Git Clones ---"
           mkdir -p ~/deps
           
-          # HxGeomAlgo (The one that just failed)
+          # Using the global config above, these will now use your token
           git clone --depth 1 https://github.com/azrafe7/hxGeomAlgo.git ~/deps/hxGeomAlgo
           haxelib dev hxGeomAlgo ~/deps/hxGeomAlgo
           
-          # Hx-Lua
           git clone --depth 1 https://github.com/larsiusprime/hx-lua.git ~/deps/hx-lua
           haxelib dev hx-lua ~/deps/hx-lua
           
-          # Scripting & Logic
           git clone --depth 1 https://github.com/Oren-LuckyJackpots/SScript-For-Psych.git ~/deps/SScript
           haxelib dev SScript ~/deps/SScript
           
@@ -79,21 +81,18 @@ jobs:
           git clone --depth 1 https://github.com/Dot-Stuff/flxanimate.git ~/deps/flxanimate
           haxelib dev flxanimate ~/deps/flxanimate
           
-          # Audio Stack
           git clone --depth 1 https://github.com/grig-org/grig.core.git ~/deps/grig-core
           haxelib dev grig.core ~/deps/grig-core
           
           git clone --depth 1 https://github.com/grig-org/grig.audio.git ~/deps/grig-audio
           haxelib dev grig.audio ~/deps/grig-audio
           
-          # Rendering & Math
           git clone --depth 1 https://github.com/Tw1ddle/geometrize-haxe-vector-math.git ~/deps/vector-math
           haxelib dev vector-math ~/deps/vector-math
           
           git clone --depth 1 https://github.com/snowkit/linc_stb.git ~/deps/linc_stb
           haxelib dev linc_stb ~/deps/linc_stb
 
-          # Mobile/Android Components
           git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls.git ~/deps/mobile-controls
           haxelib dev mobile-controls ~/deps/mobile-controls
           
@@ -125,9 +124,8 @@ jobs:
         run: |
           mkdir -p output
           find export/ -name "*.apk" -exec cp {} output/ \;
-          # Log Check
           if [ -z "$(ls -A output)" ]; then 
-            echo "FAILED: No APK was created in export/."
+            echo "FAILED: No APK was created."
             ls -R export/
             exit 1
           fi
