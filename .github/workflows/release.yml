@@ -17,7 +17,7 @@ jobs:
             buildArgs: "android -ONLY_ARM64 -final" 
             artifactName: androidBuild-Astra
             artifactPath: "export/release/android/bin/app/build/outputs/apk/release/*.apk"
-            doCache: "YES" # Added this back
+            doCache: "YES"
 
           - name: Windows-NORMAL
             os: windows-latest
@@ -25,7 +25,7 @@ jobs:
             buildArgs: "windows -D officialBuild -final"
             artifactName: windowsBuild-x86_64
             artifactPath: "export/release/windows/bin/*.exe"
-            doCache: "YES" # Added this back
+            doCache: "YES"
 
     uses: ./.github/workflows/build.yml
     with:
@@ -35,26 +35,22 @@ jobs:
       buildArgs: ${{ matrix.buildArgs }}
       artifactName: ${{ matrix.artifactName }}
       artifactPath: ${{ matrix.artifactPath }}
-      doCache: ${{ matrix.doCache }} # Passing the input here
+      doCache: ${{ matrix.doCache }}
     secrets: inherit
 
   Release:
     needs: Build
+    # THE SMART FIX: This runs if AT LEAST one build worked (Android or Windows)
     if: ${{ always() && contains(needs.Build.result, 'success') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download All Artifacts
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./outputs
-          merge-multiple: true 
-
-      - name: Organize Files
-        run: |
-          mkdir -p release_dist
-          find ./outputs -type f \( -name "*.apk" -o -name "*.exe" -o -name "*.zip" \) -exec cp {} ./release_dist/ \;
+          merge-multiple: true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -63,8 +59,11 @@ jobs:
           name: "Android Build Compiler Psych Online #${{ github.run_number }}"
           body: |
             ## 🚀 Psych Online Extended: Automated Build
-            - **Platform:** Android (Astra) / Windows
-            - **Build Number:** ${{ github.run_number }}
-          files: release_dist/*
+            - Build Number: ${{ github.run_number }}
+            - Includes: Android (ARM64) and Windows (if successful)
+          files: |
+            ./outputs/*.apk
+            ./outputs/*.exe
+            ./outputs/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
