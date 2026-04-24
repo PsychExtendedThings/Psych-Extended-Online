@@ -1,140 +1,72 @@
-name: Android Build + Release
-on:
+name: Build Psych Extended Online
+
+on: 
   workflow_dispatch:
   push:
     branches: [ "dev" ]
 
 jobs:
-  build-android:
+  Build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Android-NORMAL
+            os: ubuntu-latest
+            setupCommand: sh ./setup/unix-alter.sh
+            buildArgs: "android -ONLY_ARM64 -final" 
+            artifactName: androidBuild-Astra
+            artifactPath: "export/release/android/bin/app/build/outputs/apk/release/*.apk"
+            doCache: "YES"
+
+          - name: Windows-NORMAL
+            os: windows-latest
+            setupCommand: "setup/windows.bat"
+            buildArgs: "windows -D officialBuild -final"
+            artifactName: windowsBuild-x86_64
+            artifactPath: "export/release/windows/bin/*"
+            doCache: "YES"
+
+    uses: ./.github/workflows/build.yml
+    with:
+      name: ${{ matrix.name }}
+      os: ${{ matrix.os }}
+      setupCommand: ${{ matrix.setupCommand }}
+      buildArgs: ${{ matrix.buildArgs }}
+      artifactName: ${{ matrix.artifactName }}
+      artifactPath: ${{ matrix.artifactPath }}
+      doCache: ${{ matrix.doCache }}
+    secrets: inherit
+
+  Release:
+    needs: Build
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
         with:
-          submodules: true
+          path: ./outputs
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Haxe
-        uses: krdlab/setup-haxe@v1
-        with:
-          haxe-version: 4.2.5
-
-      - name: Install All Dependencies (Authenticated Mode)
+      - name: Organize Files
         run: |
-          set -e
-          
-          # THE FIX: Force every github.com request to use the token automatically
-          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          
-          haxelib setup ~/haxelib
-          
-          echo "--- 1. Standard Haxelibs ---"
-          haxelib install lime 8.0.1 --quiet
-          haxelib install openfl 9.2.1 --quiet
-          haxelib install flixel 5.2.2 --quiet
-          haxelib install flixel-addons 3.0.2 --quiet
-          haxelib install flixel-ui --quiet
-          haxelib install flixel-tools --quiet
-          haxelib install hxvlc --quiet
-          haxelib install tjson --quiet
-          haxelib install json2object --quiet
-          haxelib install hscript --quiet
-          haxelib install compiletime --quiet
-          haxelib install systools --quiet
-          haxelib install actuate --quiet
-          haxelib install thx.core --quiet
-          haxelib install thx.semver --quiet
-          haxelib install yaml --quiet
-          haxelib install markdown --quiet
-          haxelib install colyseus --quiet
-          haxelib install tink_core --quiet
-          haxelib install tink_http --quiet
-          haxelib install http-status --quiet
-          haxelib install HtmlParser --quiet
+          mkdir -p release_dist
+          # Find all APKs and EXEs and move them to a flat folder
+          find ./outputs -type f \( -name "*.apk" -o -name "*.exe" -o -name "*.zip" \) -exec cp {} ./release_dist/ \;
+          ls -R ./release_dist/
 
-          echo "--- 2. Authenticated Git Clones ---"
-          mkdir -p ~/deps
-          
-          # Using the global config above, these will now use your token
-          git clone --depth 1 https://github.com/azrafe7/hxGeomAlgo.git ~/deps/hxGeomAlgo
-          haxelib dev hxGeomAlgo ~/deps/hxGeomAlgo
-          
-          git clone --depth 1 https://github.com/larsiusprime/hx-lua.git ~/deps/hx-lua
-          haxelib dev hx-lua ~/deps/hx-lua
-          
-          git clone --depth 1 https://github.com/Oren-LuckyJackpots/SScript-For-Psych.git ~/deps/SScript
-          haxelib dev SScript ~/deps/SScript
-          
-          git clone --depth 1 https://github.com/CodenameCrew/hscript-improved.git ~/deps/hscript-improved
-          haxelib dev hscript-improved ~/deps/hscript-improved
-          
-          git clone --depth 1 https://github.com/Dot-Stuff/flxanimate.git ~/deps/flxanimate
-          haxelib dev flxanimate ~/deps/flxanimate
-          
-          git clone --depth 1 https://github.com/grig-org/grig.core.git ~/deps/grig-core
-          haxelib dev grig.core ~/deps/grig-core
-          
-          git clone --depth 1 https://github.com/grig-org/grig.audio.git ~/deps/grig-audio
-          haxelib dev grig.audio ~/deps/grig-audio
-          
-          git clone --depth 1 https://github.com/Tw1ddle/geometrize-haxe-vector-math.git ~/deps/vector-math
-          haxelib dev vector-math ~/deps/vector-math
-          
-          git clone --depth 1 https://github.com/snowkit/linc_stb.git ~/deps/linc_stb
-          haxelib dev linc_stb ~/deps/linc_stb
-
-          git clone --depth 1 https://github.com/ArkoseLabsOfficial/mobile-controls.git ~/deps/mobile-controls
-          haxelib dev mobile-controls ~/deps/mobile-controls
-          
-          git clone --depth 1 https://github.com/AndreiRudenko/linc_luajit.git ~/deps/linc_luajit
-          haxelib dev linc_luajit ~/deps/linc_luajit
-          
-          git clone --depth 1 https://github.com/polybiusproxy/hxCodec.git ~/deps/hxCodec
-          haxelib dev hxCodec ~/deps/hxCodec
-          
-          git clone --depth 1 https://github.com/MAJigsaw77/extension-androidtools.git ~/deps/extension-androidtools
-          haxelib dev extension-androidtools ~/deps/extension-androidtools
-
-          echo "--- 3. Final Environment Setup ---"
-          haxelib run lime setup android
-          haxelib run lime config ANDROID_SDK $ANDROID_HOME
-          haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
-          haxelib run lime setup
-        shell: bash
-
-      - name: Compile APK
-        run: |
-          echo "Starting the long compile for RedMagic Astra..."
-          echo "::group::Compiler Output"
-          haxelib run lime build android -final -quiet
-          echo "::endgroup::"
-        shell: bash
-
-      - name: Find and Upload APK
-        run: |
-          mkdir -p output
-          find export/ -name "*.apk" -exec cp {} output/ \;
-          if [ -z "$(ls -A output)" ]; then 
-            echo "FAILED: No APK was created."
-            ls -R export/
-            exit 1
-          fi
-        shell: bash
-
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
-        if: success()
         with:
-          tag_name: "astra-v${{ github.run_number }}"
+          tag_name: "v${{ github.run_number }}"
           name: "Psych Online Extended Build #${{ github.run_number }}"
-          files: output/*.apk
+          body: |
+            ## 🚀 Automated Build for RedMagic Astra & Windows
+            - **Run Number:** ${{ github.run_number }}
+            - **Commit:** ${{ github.sha }}
+            
+            This release was automatically generated by GitHub Actions.
+          files: release_dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
