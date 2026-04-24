@@ -30,7 +30,7 @@ jobs:
     name: ${{ inputs.name }}
     runs-on: ${{ inputs.os }}
     permissions:
-      contents: write
+      contents: write # Needed for the release to work
     steps:
       - name: Checkout
         uses: actions/checkout@main
@@ -38,14 +38,15 @@ jobs:
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master
         with:
-          haxe-version: 4.2.5 # This is the "Old" version it uses
+          # This is the "Magic Fix" for the Unexpected ? error
+          haxe-version: 4.3.4 
 
       - name: Install Libraries
         run: |
           haxelib setup ~/haxelib
           ${{ inputs.setupCommand }}
           
-          # FIX: This stops the "lime setup android" error
+          # This fixes the "lime setup android" error from your previous log
           if [ "${{ runner.os }}" = "Linux" ]; then
             haxelib run lime config ANDROID_SDK $ANDROID_HOME
             haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -63,12 +64,14 @@ jobs:
           name: ${{ inputs.artifactName }}
           path: ${{ inputs.artifactPath }}
 
-      - name: Create Release
+      # ADDED: Upload Release (using softprops/shopify-style action)
+      - name: Upload Release
         uses: softprops/action-gh-release@v1
         if: success()
         with:
           tag_name: "v${{ github.run_number }}"
           name: "Psych Online Build #${{ github.run_number }}"
+          body: "Automated Build for Psych Extended Online"
           files: ${{ inputs.artifactPath }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
