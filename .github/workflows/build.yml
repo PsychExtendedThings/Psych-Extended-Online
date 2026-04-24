@@ -30,7 +30,7 @@ jobs:
     name: ${{ inputs.name }}
     runs-on: ${{ inputs.os }}
     permissions:
-      contents: write # Required for the release feature
+      contents: write # Essential for the release
     steps:
       - name: Checkout
         uses: actions/checkout@main
@@ -40,25 +40,10 @@ jobs:
         with:
           haxe-version: 4.2.5
 
-      - name: Install Libraries & Fix "Enemies"
+      - name: Install Libraries
         run: |
           haxelib setup ~/haxelib
-          # 1. Run original setup
           ${{ inputs.setupCommand }}
-          
-          # 2. FEATURE: Force-fix libraries that cause the '128' error
-          mkdir -p ~/deps
-          git clone --depth 1 https://github.com/HaxeFoundation/hx-lua ~/deps/hx-lua || true
-          haxelib dev hx-lua ~/deps/hx-lua || true
-          git clone --depth 1 https://github.com/azrafe7/hxGeomAlgo ~/deps/hxGeomAlgo || true
-          haxelib dev hxGeomAlgo ~/deps/hxGeomAlgo || true
-          
-          # 3. FEATURE: Android Environment Setup (Only if on Linux)
-          if [ "${{ runner.os }}" = "Linux" ]; then
-            haxelib run lime setup android
-            haxelib run lime config ANDROID_SDK $ANDROID_HOME
-            haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
-          fi
         shell: bash
 
       - name: Compile
@@ -71,17 +56,12 @@ jobs:
           name: ${{ inputs.artifactName }}
           path: ${{ inputs.artifactPath }}
 
-      # FEATURE: Auto-Release (Posts the file to GitHub immediately after building)
-      - name: Upload to Release
+      - name: Upload Release
         uses: softprops/action-gh-release@v1
         if: success()
         with:
           tag_name: "v${{ github.run_number }}"
-          name: "Android Build Compiler Psych Online #${{ github.run_number }}"
-          body: |
-            ## 🚀 Automated Build: ${{ inputs.name }}
-            - Build Run: ${{ github.run_number }}
-            - Target OS: ${{ inputs.os }}
+          name: "Build #${{ github.run_number }}"
           files: ${{ inputs.artifactPath }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
