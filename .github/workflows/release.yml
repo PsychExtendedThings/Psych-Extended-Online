@@ -38,32 +38,33 @@ jobs:
       doCache: ${{ matrix.doCache }}
     secrets: inherit
 
+  # THIS IS THE PART YOU WANTED: A single job in the main file
   Release:
     needs: Build
-    # THE SMART FIX: This runs if AT LEAST one build worked (Android or Windows)
+    # Run even if Windows fails, as long as SOMETHING (Android) succeeded
     if: ${{ always() && contains(needs.Build.result, 'success') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download Artifacts
+      - name: Download All Files
         uses: actions/download-artifact@v4
         with:
           path: ./outputs
-          merge-multiple: true
+          merge-multiple: true 
 
-      - name: Create GitHub Release
+      - name: Create Single Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "v${{ github.run_number }}"
           name: "Android Build Compiler Psych Online #${{ github.run_number }}"
           body: |
-            ## 🚀 Psych Online Extended: Automated Build
+            ## 🚀 Automated Build Results
             - Build Number: ${{ github.run_number }}
-            - Includes: Android (ARM64) and Windows (if successful)
+            - Files: Android (Astra) and Windows (if successful)
+          # This grabs everything we downloaded in the previous step
           files: |
             ./outputs/*.apk
             ./outputs/*.exe
-            ./outputs/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
