@@ -23,6 +23,9 @@ class CreditsState extends MusicBeatState
 
 	var offsetThing:Float = -75;
 
+	var inputBuffer:String = "";
+    var secretCode:String = "FUCK";
+
 	override function create()
 	{
 		#if DISCORD_ALLOWED
@@ -45,8 +48,7 @@ class CreditsState extends MusicBeatState
 
 		var defaultList:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
 			['Psych Extended Team'],
-			['ArkoseLabs',	 'arkoselabs',	'Creator of Psych Extended Online',					'https://youtube.com/@arkoselabsofficial',		'95240E'],
-			['SametGkTe',	 'gkte',	'Creator of Psych Extended Online Turkiye & helper of Psych Extended Online',	'https://tiktok.com/@gktegameplay',		'24ED13'],
+			['KralOyuncu & ArkoseLabs',	 'arkoselabs',	'Creators of Psych Extended Online',					'https://youtube.com/@arkoselabsofficial',		'95240E'],
 			['Ethantobot',	 'face',	'Tester & Helper of Psych Extended Online',					'https://youtube.com/@ethanpater548',		'24ED13'],
 			[''],
 			['Psych Online'],
@@ -155,6 +157,40 @@ class CreditsState extends MusicBeatState
 
 	var quitting:Bool = false;
 	var holdTime:Float = 0;
+	function changeCreditName(oldName:String, newName:String)
+    {
+        for (i in 0...creditsStuff.length)
+        {
+            if (creditsStuff[i][0] == oldName) {
+                creditsStuff[i][0] = newName;
+
+                var item = grpOptions.members[i];
+                if (item is Alphabet) {
+                    cast(item, Alphabet).text = newName;
+                } else if (item is online.objects.AlphaLikeText) {
+                    cast(item, online.objects.AlphaLikeText).text = newName;
+                }
+
+                if(iconArray[i] != null) {
+                    iconArray[i].xAdd = cast(item, FlxSprite).width + 10;
+                }
+            }
+        }
+    }
+	function changeCreditDesc(name:String, newDesc:String)
+	{
+		for (i in 0...creditsStuff.length)
+		{
+			if (creditsStuff[i][0] == name) {
+				creditsStuff[i][2] = newDesc;
+				if (curSelected == i) {
+					descText.text = newDesc;
+					descBox.setGraphicSize(Std.int(descText.width + 20), Std.int(descText.height + 25));
+					descBox.updateHitbox();
+				}
+			}
+		}
+	}
 	override function update(elapsed:Float)
 	{
 		if (FlxG.sound.music.volume < 0.7)
@@ -164,6 +200,20 @@ class CreditsState extends MusicBeatState
 
 		if(!quitting)
 		{
+			if (FlxG.keys.justPressed.ANY) {
+                var lastKey:String = flixel.input.keyboard.FlxKey.toStringMap.get(FlxG.keys.firstJustPressed());
+                inputBuffer += lastKey;
+
+                if (inputBuffer.length > 20) inputBuffer = inputBuffer.substring(1);
+
+                if (inputBuffer.endsWith(secretCode)) {
+					changeCreditName("Snirozu", "Sikirozu");
+					changeCreditDesc("Sikirozu", "Amına keee :)");
+                    FlxG.sound.play(Paths.sound('confirmMenu'));
+                    inputBuffer = "";
+                }
+            }
+
 			if(creditsStuff.length > 1)
 			{
 				var shiftMult:Int = 1;

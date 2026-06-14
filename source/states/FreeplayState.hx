@@ -815,7 +815,7 @@ class FreeplayState extends MusicBeatState
 		}
 
 		super.closeSubState();
-		#if TOUCH_CONTROLS mobileManager.mobilePad.visible = true; #end
+		mobileManager.mobilePad.visible = true;
 		mobileManager.removeMobilePad();
 		mobileManager.addMobilePad('FULL', (GameClient.isConnected()) ? 'FREEPLAY_ONLINE' : 'FREEPLAY');
 		mobileManager.addMobilePadCamera();
@@ -1058,7 +1058,7 @@ class FreeplayState extends MusicBeatState
 					var daCopy = searchGroupVList.copy();
 					for (i => item in daCopy)
 						daCopy[i] = formatGroupItem(item);
-					#if TOUCH_CONTROLS mobileManager.mobilePad.visible = false; #end
+					mobileManager.mobilePad.visible = false;
 					var selState = new online.substates.SoFunkinSubstate(daCopy, searchGroupValue, i -> {
 						searchGroupValue = i;
 						search();
@@ -1233,7 +1233,7 @@ class FreeplayState extends MusicBeatState
 								loadSong();
 								persistentUpdate = false;
 								_substateIsModifiers = true;
-								#if TOUCH_CONTROLS mobileManager.mobilePad.visible = false; #end
+								mobileManager.mobilePad.visible = false;
 								openSubState(new GameplayChangersSubstate());
 							}
 							catch (e:Dynamic) {
@@ -1577,8 +1577,8 @@ class FreeplayState extends MusicBeatState
 
 	var centerPoint:FlxObject;
 	function updateSelectSelection() {
-		var space = #if TOUCH_CONTROLS "X" #else "SPACE" #end;
-		var ctrl = #if TOUCH_CONTROLS "G" #else "CTRL" #end;
+		var space = controls.mobileControls ? "X" : "SPACE";
+		var ctrl = controls.mobileControls ? "G" : "CTRL";
 		missingText.visible = false;
 		missingTextBG.visible = false;
 

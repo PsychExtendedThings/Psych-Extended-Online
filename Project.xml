@@ -30,6 +30,7 @@
 	<define name="HSC_ALLOWED" />
 	<define name="SCRIPTING_ALLOWED" />
 	<define name="TRANSLATIONS_ALLOWED" />
+	<define name="PEXO_SUPPORT" />
 
 	<!-- ______________________ PSYCH ENGINE CUSTOMIZATION ______________________ -->
 
@@ -119,13 +120,9 @@
 	<assets path='art/run-server.bat' rename='run-server.bat' if="windows" />
 
 	<!-- || Mobile Defines || -->
-	<define name="TOUCH_CONTROLS" if="mobile" />
 	<!-- Crash Handler Shit (Idk what it does, If you ask me it doesn't do anything) -->
 	<define name="CRASH_HANDLER" if="desktop || mobile" />
-	<section if="TOUCH_CONTROLS">
-		<assets path="mobile/assets"                  rename="assets/mobile"/>
-		<assets path="mobile/storageModes.txt"      rename="mobile/storageModes.txt"/>
-	</section>
+	<assets path="mobile/storageModes.txt" if="mobile"/>
 
 	<!-- _______________________________ Libraries ______________________________ -->
 
@@ -139,7 +136,7 @@
 
 	<!--Psych stuff needed-->
 	<haxelib name="linc_luajit" if="LUA_ALLOWED" />
-	<haxelib name="hscript-improved" if="HSC_ALLOWED" />
+	<haxelib name="hscript-improved" if="HSC_ALLOWED || SCRIPTING_ALLOWED" />
 	<haxelib name="SScript" if="HSCRIPT_ALLOWED" />
 	<haxelib name="hxvlc" if="VIDEOS_ALLOWED" />
 	<section if="desktop">
@@ -244,11 +241,7 @@
 	<!-- Do whatever you want I'm tired uninstall and install everytime -->
 	<certificate path="key.keystore" password="psychengine" alias="psychport" alias-password="psychengine" if="android" unless="debug" />
 
-	<haxedef name="DISABLE_AUDIO_FOCUS" if="android" /> <!-- Disable the fucking audio focus -->
-
-	<!-- Category Type for Apple Systems -->
-	<config:ios category_type="public.app-category.music-games" />
-	<config:mac category_type="public.app-category.music-games" />
+	<haxedef name="DISABLE_AUDIO_FOCUS" if="android" /> <!-- Disable the fucking audio focus -->>
 
 	<haxedef name="openfl_dpi_aware" />
 

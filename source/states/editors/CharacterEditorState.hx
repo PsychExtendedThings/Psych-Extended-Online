@@ -1290,41 +1290,68 @@ class CharacterEditorState extends MusicBeatState {
 	}
 
 	function reloadCharacterDropDown() {
-		var charsLoaded:Map<String, Bool> = new Map();
+        var charsLoaded:Map<String, Bool> = new Map();
 
-		characterList = [];
-		#if MODS_ALLOWED
-		var directories:Array<String> = [
-			Paths.mods('characters/'),
-			Paths.mods(Mods.currentModDirectory + '/characters/'),
-			Paths.getPreloadPath('characters/')
-		];
-		for (mod in Mods.getGlobalMods())
-			directories.push(Paths.mods(mod + '/characters/'));
-		for (i in 0...directories.length) {
-			var directory:String = directories[i];
-			if (FunkinFileSystem.exists(directory)) {
-				for (file in FunkinFileSystem.readDirectory(directory)) {
-					var path = haxe.io.Path.join([directory, file]);
-					if (file.endsWith('.json')) {
-						var charToCheck:String = file.substr(0, file.length - 5);
-						if (!charsLoaded.exists(charToCheck)) {
-							characterList.push(charToCheck);
-							charsLoaded.set(charToCheck, true);
-						}
-					}
-				}
-			}
-		}
-		#end
-		characterList = characterList.concat(CoolUtil.coolTextFile(Paths.txt('characterList')));
+        characterList = [];
+        #if MODS_ALLOWED
+        // 1. Scan for standard .json characters
+        var directories:Array<String> = [
+            Paths.mods('characters/'),
+            Paths.mods(Mods.currentModDirectory + '/characters/'),
+            Paths.getPreloadPath('characters/')
+        ];
+        for (mod in Mods.getGlobalMods())
+            directories.push(Paths.mods(mod + '/characters/'));
+            
+        for (i in 0...directories.length) {
+            var directory:String = directories[i];
+            if (FunkinFileSystem.exists(directory)) {
+                for (file in FunkinFileSystem.readDirectory(directory)) {
+                    var path = haxe.io.Path.join([directory, file]);
+                    if (file.endsWith('.json')) {
+                        var charToCheck:String = file.substr(0, file.length - 5);
+                        if (!charsLoaded.exists(charToCheck)) {
+                            characterList.push(charToCheck);
+                            charsLoaded.set(charToCheck, true);
+                        }
+                    }
+                }
+            }
+        }
 
-		charDropDown.setData(FlxScrollableDropDownMenu.makeStrIdLabelArray(characterList, true));
-		charDropDown.selectedLabel = daAnim;
+        // 2. Scan for fallback .xml characters in data/characters/
+        var xmlDirectories:Array<String> = [
+            Paths.mods('data/characters/'),
+            Paths.mods(Mods.currentModDirectory + '/data/characters/'),
+            Paths.getPreloadPath('data/characters/')
+        ];
+        for (mod in Mods.getGlobalMods())
+            xmlDirectories.push(Paths.mods(mod + '/data/characters/'));
 
-		speakerDropDown.setData(FlxScrollableDropDownMenu.makeStrIdLabelArray([''].concat(characterList), true));
-		speakerDropDown.selectedLabel = char?.speakerName;
-	}
+        for (i in 0...xmlDirectories.length) {
+            var directory:String = xmlDirectories[i];
+            if (FunkinFileSystem.exists(directory)) {
+                for (file in FunkinFileSystem.readDirectory(directory)) {
+                    if (file.endsWith('.xml')) {
+                        var charToCheck:String = file.substr(0, file.length - 4);
+                        // Only add if the JSON version wasn't already loaded
+                        if (!charsLoaded.exists(charToCheck)) {
+                            characterList.push(charToCheck);
+                            charsLoaded.set(charToCheck, true);
+                        }
+                    }
+                }
+            }
+        }
+        #end
+        characterList = characterList.concat(CoolUtil.coolTextFile(Paths.txt('characterList')));
+
+        charDropDown.setData(FlxScrollableDropDownMenu.makeStrIdLabelArray(characterList, true));
+        charDropDown.selectedLabel = daAnim;
+
+        speakerDropDown.setData(FlxScrollableDropDownMenu.makeStrIdLabelArray([''].concat(characterList), true));
+        speakerDropDown.selectedLabel = char?.speakerName;
+    }
 
 	function resetHealthBarColor() {
 		healthColorStepperR.value = char.healthColorArray[0];
@@ -1428,7 +1455,6 @@ class CharacterEditorState extends MusicBeatState {
 					camFollow.x += addToCam;
 			}
 
-			#if TOUCH_CONTROLS
 			mobileManager.mobilePad.forEachAlive((button:MobileButton) ->
 			{
 				if (button.justPressed || button.pressed)
@@ -1436,7 +1462,6 @@ class CharacterEditorState extends MusicBeatState {
 				else
 					overlapsToButton = false;
 			});
-			#end
 
 			if (char.animationsArray.length > 0) {
 				if (mobileButtonJustPressed('V') || FlxG.keys.justPressed.W) {

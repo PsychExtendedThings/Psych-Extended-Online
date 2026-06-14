@@ -569,7 +569,7 @@ class Paths
 	}
 
 	inline static public function script(key:String, ?library:String, ?onlyGlobals:Bool) {
-		#if SCRIPTING_ALLOWED
+		#if (SCRIPTING_ALLOWED || HSC_ALLOWED)
 		var scriptToLoad:String = null;
 		for(ex in ["hsc", "porno", "class", "script", "pex"]) {
 			#if MODS_ALLOWED
@@ -750,9 +750,7 @@ class Paths
 				var fullNewFilePath = Path.join([dirToSearch,file]);
 				if (FileSystem.isDirectory(fullNewFilePath))
 					continue;
-				trace("Current file: " + file + ", looking for " + fileName);
 				if (file.toLowerCase() == fileName.toLowerCase()) {
-					trace("Filename is real! It's " + file);
 					return fullNewFilePath;
 				}
 			}

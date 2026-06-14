@@ -42,9 +42,6 @@ class Converters {
 		};
 		if (PlayState.instance != null && PlayState.instance.stage != null)
 			charFile.codenameOffsets = true;
-
-		if (xml.has.isPlayer && xml.att.isPlayer == "true") charFile.flip_x = !charFile.flip_x; //Player Flip Fix
-
 		// Parse animations
 		if (xml.hasNode.anim) {
 			for (animNode in xml.nodes.anim) {

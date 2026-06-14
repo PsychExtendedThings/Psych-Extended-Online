@@ -367,23 +367,23 @@ class OnlineState extends MusicBeatState {
 				changeSelection(1);
 
 			if (controls.ACCEPT || (FlxG.mouse.justPressed && mouseInItems)) {
-				switch (itms[curSelected].toLowerCase()) {
-					case "join":
+				switch (itms[curSelected]) {
+					case "JOIN":
 						FlxG.stage.window.textInputEnabled = true;
 						inputWait = true;
-					case "find":
+					case "FIND":
 						disableInput = true;
 						// FlxG.openURL(GameClient.serverAddress + "/rooms");
 						FlxG.switchState(() -> new FindRoomState());
-					case "host":
+					case "HOST":
 						disableInput = true;
 						GameClient.createRoom(GameClient.serverAddress, onRoomJoin);
-					case "options":
+					case "OPTIONS":
 						disableInput = true;
 						FlxG.switchState(() -> new OnlineOptionsState());
-					case "leaderboard":
+					case "LEADERBOARD":
 						openSubState(new TopPlayerSubstate());
-					case "mod downloader":
+					case "MOD DOWNLOADER":
 						disableInput = true;
 						FlxG.switchState(() -> new DownloaderState());
 				}

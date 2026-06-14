@@ -25,7 +25,7 @@ class Auth {
 			generateSave();
 
 		try {
-			saveData = Json.parse(FunkinFileSystem.getText(savePath));
+			saveData = Json.parse(File.getContent(savePath));
 		} catch(e) {
 			trace("Couldn't load peo_auth.json! More info: " + e);
 			generateSave();
@@ -64,7 +64,7 @@ class Auth {
 		saveData.id = authID = id;
 		saveData.token = authToken = token;
 
-		if ((saveData.id == null || saveData.token == null) && FunkinFileSystem.exists(savePath))
+		if ((saveData.id == null || saveData.token == null) && FileSystem.exists(savePath))
 			FileSystem.deleteFile(savePath);
 		
 		#if mobile

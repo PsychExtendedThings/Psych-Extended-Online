@@ -12,9 +12,7 @@ class OptionsState extends MusicBeatState
 		'main' => ['Controls', 'Performance', 'Visuals & UI', 'Game'],
 		'visuals' => ['Notes', 'Combo & Rating', 'User Interface', 'Accessibility'],
 		'game' => ['Gameplay', 'Preferences', 'Adjust Audio Delay'],
-		#if TOUCH_CONTROLS
 		'mobile' => ['Mobile Extra Control', 'Mobile Options'],
-		#end
 	];
 	private var grpOptionsMap:Map<String, FlxTypedGroup<Alphabet>> = new Map();
 	static var optionsCategory(default, set):String = 'main';
@@ -99,13 +97,11 @@ class OptionsState extends MusicBeatState
 				optionsCategory = 'mobile';
 			case 'Mods':
 				FlxG.switchState(() -> new ModsMenuState());
-			#if TOUCH_CONTROLS
 			case 'Mobile Options':
 				openSubState(new mobile.options.MobileOptionsSubState());
 			case 'Mobile Extra Control':
 				controls.isInSubstate = true;
 				openSubState(new mobile.substates.MobileExtraControl());
-			#end
 		}
 	}
 
@@ -159,9 +155,7 @@ class OptionsState extends MusicBeatState
 		if (!onPlayState)
 			optionsMap.get('main').push('Mods');
 		#end
-		#if TOUCH_CONTROLS
 		optionsMap.get('main').push('Mobile');
-		#end
 
 		for (category => items in optionsMap) {
 			var group = new FlxTypedGroup<Alphabet>();
@@ -247,7 +241,7 @@ class OptionsState extends MusicBeatState
 				optionsCategory = 'main';
 			}
 		}
-		else if (controls.ACCEPT #if desktop || FlxG.mouse.justPressed #end) openSelectedSubstate(options[curSelected]);
+		else if (controls.ACCEPT || FlxG.mouse.justPressed && controls.mobileControls) openSelectedSubstate(options[curSelected]);
 	}
 	
 	function changeSelection(change:Int = 0) {

@@ -1,16 +1,21 @@
 package funkin.game;
 
-import funkin.backend.scripting.events.StageXMLEvent;
-import funkin.backend.scripting.events.StageNodeEvent;
-import flixel.math.FlxPoint;
+import flixel.util.typeLimit.OneOfTwo;
+import states.editors.CharacterEditorState as CharacterEditor;
 import flixel.FlxState;
+import flixel.math.FlxPoint;
 import haxe.xml.Access;
+import funkin.backend.utils.XMLUtil;
+import funkin.backend.system.interfaces.IBeatReceiver;
+import funkin.backend.scripting.HScript;
+import funkin.backend.scripting.events.stage.*;
 import funkin.backend.system.interfaces.IBeatReceiver;
 import haxe.io.Path;
+import haxe.xml.Access;
 import objects.Character;
 
-using backend.CoolUtil;
 using StringTools;
+using backend.CoolUtil;
 
 class Stage extends FlxBasic implements IBeatReceiver {
 	public var stageXML:Access;
@@ -41,9 +46,11 @@ class Stage extends FlxBasic implements IBeatReceiver {
 		}
 
 		if (PlayState.instance != null) {
+			#if HSC_ALLOWED
 			stageScript = Script.create(Paths.script('data/stages/$stage'));
 			PlayState.instance.scripts.add(stageScript);
 			stageScript.load();
+			#end
 		}
 
 		if (stageXML != null) {
@@ -61,27 +68,30 @@ class Stage extends FlxBasic implements IBeatReceiver {
 
 			var elems = [];
 			for(node in stageXML.elements) {
-				if (node.name == "high-memory" /* && !Options.lowMemoryMode */)
+				if (node.name == "high-memory" && !ClientPrefs.data.lowQuality)
 					for(e in node.elements)
 						elems.push(e);
 				else
 					elems.push(node);
 			}
 
+			#if HSC_ALLOWED
 			if (PlayState.instance != null) {
 				var event = PlayState.instance.scripts.event("onStageXMLParsed", EventManager.get(StageXMLEvent).recycle(this, stageXML, elems));
 				elems = event.elems;
 			}
+			#end
 
 			for(node in elems) {
 				var sprite:Dynamic = switch(node.name) {
 					case "sprite" | "spr" | "sparrow":
 						if (!node.has.sprite || !node.has.name) continue;
 
+						trace(node + "|" + spritesParentFolder);
 						var spr = XMLUtil.createSpriteFromXML(node, spritesParentFolder, LOOP);
 
 						if (!node.has.zoomfactor && PlayState.instance != null)
-							//spr.initialZoom = PlayState.instance.defaultCamZoom;
+							spr.initialZoom = PlayState.instance.defaultCamZoom;
 
 						stageSprites.set(spr.name, spr);
 						state.add(spr);
@@ -127,7 +137,6 @@ class Stage extends FlxBasic implements IBeatReceiver {
 					case "character" | "char":
 						if (!node.has.name) continue;
 						addCharPos(node.att.name, node);
-					/*
 					case "ratings" | "combo":
 						if (PlayState.instance == null) continue;
 						PlayState.instance.comboGroup.setPosition(
@@ -136,13 +145,14 @@ class Stage extends FlxBasic implements IBeatReceiver {
 						);
 						PlayState.instance.add(PlayState.instance.comboGroup);
 						PlayState.instance.comboGroup;
-					*/
 					default: null;
 				}
 
+				#if HSC_ALLOWED
 				if(PlayState.instance != null) {
 					sprite = PlayState.instance.scripts.event("onStageNodeParsed", EventManager.get(StageNodeEvent).recycle(this, node, sprite, node.name)).sprite;
 				}
+				#end
 
 				if (sprite != null) {
 					for(e in node.nodes.property)
@@ -203,9 +213,6 @@ class Stage extends FlxBasic implements IBeatReceiver {
 
 			var scale = Std.parseFloat(node.getAtt("scale")).getDefault(charPos.scale.x);
 			charPos.scale.set(scale, scale);
-
-			if (node.has.y && name == "boyfriend")
-				charPos.y += 450;
 
 			if (node.has.scroll) {
 				var scroll:Null<Float> = Std.parseFloat(node.att.scroll);

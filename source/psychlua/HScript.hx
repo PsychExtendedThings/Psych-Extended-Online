@@ -141,7 +141,6 @@ class HScript extends SScript
 		// For adding your own callbacks
 
 		//Mobile Control Shit
-		#if TOUCH_CONTROLS
 		set('createNewMobileManager', function(name:String, ?keyDetectionAllowed:Bool):Void
 		{
 			PlayState.instance.createNewManager(name, keyDetectionAllowed);
@@ -284,7 +283,6 @@ class HScript extends SScript
 		{
 			return PlayState.checkMPadPress(button, 'justReleased', managerName);
 		});
-		#end
 
 		// not very tested but should work
 		set('createGlobalCallback', function(name:String, func:Dynamic)

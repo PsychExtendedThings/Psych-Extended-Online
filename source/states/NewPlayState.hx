@@ -642,7 +642,7 @@ class PlayState extends MusicBeatState
 
 	var canSpaceTaunt:Bool = true;
 
-	public function initStrumLineCharacter(startX:Int = 0, startY:Int = 0, charName:String, isRight:Bool, ?type:Int, ?addToHealthBar:Bool, ?player:Player, ?sid:String, ?strumIndex:Int) {
+	public function initStrumLineCharacter(startX:Int = 0, startY:Int = 0, charName:String, isRight:Bool, ?type:Int, ?addToHealthBar:Bool, ?player:Player, ?sid:String) {
 		var char:Character = null;
 		oldModDir = Mods.currentModDirectory;
 		var tag:String = null;
@@ -673,7 +673,7 @@ class PlayState extends MusicBeatState
                 char = new Character(startX, startY, player.skin.items[0] + skinsSuffix + player.skin.items[isRight ? 2 : 1], shouldFlipX, true, tag);
             }
         }
-        else if (isRight && ClientPrefs.data.currentSkin != null && !songPlayerMatchesSkin(ClientPrefs.data.currentSkin[0])) {
+        else if (playsAsBF() == isRight && ClientPrefs.data.currentSkin != null && !songPlayerMatchesSkin(ClientPrefs.data.currentSkin[0])) {
             Mods.currentModDirectory = ClientPrefs.data.currentSkin[3];
             char = new Character(startX, startY, ClientPrefs.data.currentSkin[0] + skinsSuffix + ClientPrefs.data.currentSkin[isRight ? 2 : 1], shouldFlipX, true, tag);
         }
@@ -735,6 +735,10 @@ class PlayState extends MusicBeatState
             }
         }
 
+        if (!playsAsBF()) {
+            char.flipX = !char.flipX;
+        }
+
         if (stage == null) startCharacterPos(char, !isRight);
         
         switch (tag) {
@@ -755,6 +759,7 @@ class PlayState extends MusicBeatState
 
         startCharacterScripts(char.curCharacter, sid, isRight);
 
+		var strumIndex = type;
 		if (strumIndex == null) strumIndex = isRight ? 1 : 0;
 		if (!onlineStrumlines.exists(sid)) {
 			onlineStrumlines.set(sid, new Map());
@@ -1396,7 +1401,6 @@ class PlayState extends MusicBeatState
 			if (GameClient.isConnected()) {
 				for (sid => player in GameClient.room.state.players) {
 					var char = initPlayCharacter(player.bfSide, player, sid);
-					characters.set(sid, char);
 
 					//renewed character system
 					var strumIndex:Int = player.bfSide ? 1 : 0;
@@ -1555,19 +1559,14 @@ class PlayState extends MusicBeatState
 				if (SONG.strumLines != null && SONG.strumLines != []) {
 					for (strumIndex => strumData in SONG.strumLines) {
 						var chars:Array<Character> = [];
-						/* if (GameClient.isConnected()) {
-							if (strumData.characters != null && strumData.characters != [] && strumIndex >= 3) {
-								for (char in strumData.characters) {
-									chars.push(initStrumLineCharacter(0, 0, char, !strumData.cpu, strumData.type));
-								}
-							}
+						if (GameClient.isConnected()) {
 							for (sid => player in GameClient.room.state.players) {
 								if (strumData.characters != null && strumData.characters != [] && strumIndex >= 3) {
 									for (char in strumData.characters) {
 										if (player.bfSide && !strumData.cpu || !player.bfSide && strumData.cpu) {
-											var char = initStrumLineCharacter(0, 0, char, !strumData.cpu, strumData.type, false, player, sid, strumIndex);
-											//if (sid == GameClient.room.sessionId)
-												//chars.push(char);
+											var char = initStrumLineCharacter(0, 0, char, !strumData.cpu, strumData.type, sid, strumIndex);
+											if (sid == GameClient.room.sessionId)
+												chars.push(char);
 										}
 									}
 								}
@@ -1579,7 +1578,7 @@ class PlayState extends MusicBeatState
 								case 2: chars.push(gf);
 							}						
 							var strum = createStrum(strumData.cpu, chars, strumData.visible);
-						} else { */
+						} else {
 							if (strumData.characters != null && strumData.characters != [] && strumIndex >= 3) {
 								for (char in strumData.characters) {
 									chars.push(initStrumLineCharacter(0, 0, char, !strumData.cpu, strumData.type));
@@ -1593,7 +1592,7 @@ class PlayState extends MusicBeatState
 							}						
 							var strum = createStrum(strumData.cpu, chars, strumData.visible);
 						}
-					//}
+					}
 				} else {
 					createStrum(true, [dad], true);
 					createStrum(false, [boyfriend], true);
@@ -1602,6 +1601,69 @@ class PlayState extends MusicBeatState
 				scripts.event("onPostGenerateStrums", event);
 			}
 		});
+
+		var event = EventManager.get(AmountEvent).recycle(4);
+		if (!scripts.event("onPreGenerateStrums", event).cancelled) {
+			// Softcoded Extra Strumlines
+			if (SONG.strumLines != null && SONG.strumLines != []) {
+				for (strumIndex => strumData in SONG.strumLines) {
+					var chars:Array<Character> = [];
+					
+					// 1. Handle dynamic online characters for hardcoded strumlines (0 and 1)
+					if (GameClient.isConnected()) {
+						for (sid => player in GameClient.room.state.players) {
+							if (characters.exists(sid)) {
+								// If it's the Opponent Strumline (0) and player is NOT on bfSide
+								if (strumIndex == 0 && !player.bfSide) {
+									chars.push(characters.get(sid));
+								}
+								// If it's the Player Strumline (1) and player IS on bfSide
+								else if (strumIndex == 1 && player.bfSide) {
+									chars.push(characters.get(sid));
+								}
+							}
+						}
+					}
+
+					// 2. Fallback to default characters if online list is empty or for GF/Extra lines
+					if (chars.length == 0) {
+						switch(strumIndex) {
+							case 0: chars.push(dad);
+							case 1: chars.push(boyfriend);
+							case 2: if (gf != null) chars.push(gf);
+						}
+					}
+
+					// 3. Handle Softcoded Extra Strumlines (Index 3+)
+					if (strumData.characters != null && strumData.characters != [] && strumIndex >= 3) {
+						for (char in strumData.characters) {
+							chars.push(initStrumLineCharacter(0, 0, char, !strumData.cpu, strumData.type));
+						}
+					}
+					
+					var strum = createStrum(strumData.cpu, chars, strumData.visible);
+					
+					// 4. Apply stage positioning to ALL characters in the array
+					if (stage != null) {
+						for (i in 0...chars.length) {
+							var charType = (strumIndex == 0) ? "dad" : (strumIndex == 1 ? "boyfriend" : "girlfriend");
+							stage.applyCharStuff(chars[i], charType, 0);
+							
+							// Offset extra players so they don't Z-fight/overlap perfectly
+							if (i > 0) {
+								chars[i].x += (strumIndex == 0 ? -200 : 200) * i; 
+							}
+						}
+					}
+				}
+			} else {
+				// Default fallback logic
+				createStrum(true, [dad], true);
+				createStrum(false, [boyfriend], true);
+				if (gf != null) createStrum(true, [gf], false);
+			}
+			scripts.event("onPostGenerateStrums", event);
+		}
 
 		preloadTasks.push(() -> {
 			Conductor.songPosition = -5000 / Conductor.songPosition;

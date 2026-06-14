@@ -133,7 +133,7 @@ class HScript extends Script {
 			if (err.startsWith(fn)) err = err.substr(fn.length);
 		}
 
-		trace("ERROR Caused in " + fn + err);
+		//trace("ERROR Caused in " + fn + err);
 		DebugText.addTextToDebug(fn + err, FlxColor.RED);
 	}
 

@@ -41,32 +41,16 @@ class MusicBeatSubstate extends FlxSubState
 	public var mobileManager:MobileControlManager;
 	//makes code less messy & easier to write
 	public inline function mobileButtonJustPressed(buttons:Dynamic):Bool {
-		#if TOUCH_CONTROLS
 		return mobileManager?.mobilePad?.justPressed(buttons);
-		#else
-		return false;
-		#end
 	}
 	public inline function mobileButtonPressed(buttons:Dynamic):Bool {
-		#if TOUCH_CONTROLS
 		return mobileManager?.mobilePad?.pressed(buttons);
-		#else
-		return false;
-		#end
 	}
 	public inline function mobileButtonJustReleased(buttons:Dynamic):Bool {
-		#if TOUCH_CONTROLS
 		return mobileManager?.mobilePad?.justReleased(buttons);
-		#else
-		return false;
-		#end
 	}
 	public inline function mobileButtonReleased(buttons:Dynamic):Bool {
-		#if TOUCH_CONTROLS
 		return mobileManager?.mobilePad?.released(buttons);
-		#else
-		return false;
-		#end
 	}
 	override function destroy()
 	{
@@ -197,7 +181,7 @@ class MusicBeatSubstate extends FlxSubState
 	public function new(scriptsAllowed:Bool = true, ?scriptName:String) {
 		super();
 		instance = this;
-		mobileManager = new MobileControlManager();
+		mobileManager = new MobileControlManager(this);
 		this.scriptName = scriptName;
 	}
 
@@ -226,7 +210,6 @@ class MusicBeatSubstate extends FlxSubState
 
 	override function create()
 	{
-		add(mobileManager);
 		loadScript();
 		super.create();
 	}

@@ -148,11 +148,9 @@ class EditorPlayState extends MusicBeatSubstate
 
 		mobileManager.addHitbox(null, ClientPrefs.data.hitboxHint);
 		mobileManager.addHitboxCamera();
-		#if TOUCH_CONTROLS
 		mobileManager.hitbox.visible = true;
 		mobileManager.hitbox.onButtonDown.add(onButtonPress);
 		mobileManager.hitbox.onButtonUp.add(onButtonRelease);
-		#end
 		
 		generateSong(PlayState.SONG.song);
 
@@ -176,7 +174,7 @@ class EditorPlayState extends MusicBeatSubstate
 	{
 		if(#if android FlxG.android.justReleased.BACK #else mobileButtonJustPressed('P') #end || controls.BACK || FlxG.keys.justPressed.ESCAPE)
 		{
-			#if TOUCH_CONTROLS mobileManager.hitbox.visible = false; #end
+			mobileManager.hitbox.visible = false;
 			endSong();
 			super.update(elapsed);
 			return;
@@ -757,7 +755,6 @@ class EditorPlayState extends MusicBeatSubstate
 		}
 	}
 
-	#if TOUCH_CONTROLS
 	private function onButtonPress(button:MobileButton, ids:Array<String>, intID:Int):Void
 	{
 		if (ids.filter(id -> id.startsWith("NOTE")).length > 0 || ids.filter(id -> id.startsWith("HITBOX")).length > 0 || ids.filter(id -> id.startsWith("EXTRA")).length > 0)
@@ -775,7 +772,6 @@ class EditorPlayState extends MusicBeatSubstate
 			if(buttonCode > -1) keyReleased(buttonCode);
 		}
 	}
-	#end
 	
 	// Hold notes
 	private function keysCheck():Void

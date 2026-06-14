@@ -112,21 +112,19 @@ import online.backend.Deflection;
 // Mobile Controls
 
 // Spesificly Extended Mobile-Controls Library Objects For FNF
-#if TOUCH_CONTROLS
 import mobile.objects.FunkinMobilePad;
 import mobile.objects.FunkinHitbox;
 import mobile.objects.FunkinJoyStick;
-#end
 // Others
 import backend.FunkinFileSystem;
-#if TOUCH_CONTROLS
 import mobile.ScreenUtil;
 import mobile.MobileConfig;
 import mobile.MobileConfig.ButtonModes;
 import mobile.MobileButton;
+#if mobile
 import mobile.backend.StorageUtil;
-import mobile.substates.MobileExtraControl;
 #end
+import mobile.substates.MobileExtraControl;
 import mobile.MobileControlManager;
 //Android
 #if android

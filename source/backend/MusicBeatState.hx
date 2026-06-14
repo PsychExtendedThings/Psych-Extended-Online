@@ -39,39 +39,23 @@ class MusicBeatState extends FlxUIState
 	#if !SCRIPTING_ALLOWED
 	function new() {
 		super();
-		mobileManager = new MobileControlManager();
+		mobileManager = new MobileControlManager(this);
 	}
 	#end
 
 	public var mobileManager:MobileControlManager;
 	//makes code less messy & easier to write
 	public inline function mobileButtonJustPressed(buttons:Dynamic):Bool {
-		#if TOUCH_CONTROLS
 		return mobileManager?.mobilePad?.justPressed(buttons);
-		#else
-		return false;
-		#end
 	}
 	public inline function mobileButtonPressed(buttons:Dynamic):Bool {
-		#if TOUCH_CONTROLS
 		return mobileManager?.mobilePad?.pressed(buttons);
-		#else
-		return false;
-		#end
 	}
 	public inline function mobileButtonJustReleased(buttons:Dynamic):Bool {
-		#if TOUCH_CONTROLS
 		return mobileManager?.mobilePad?.justReleased(buttons);
-		#else
-		return false;
-		#end
 	}
 	public inline function mobileButtonReleased(buttons:Dynamic):Bool {
-		#if TOUCH_CONTROLS
 		return mobileManager?.mobilePad?.released(buttons);
-		#else
-		return false;
-		#end
 	}
 
 	override function destroy()
@@ -92,8 +76,6 @@ class MusicBeatState extends FlxUIState
 		camBeat = FlxG.camera;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
 		#if MODS_ALLOWED Mods.updatedOnState = false; #end
-
-		add(mobileManager);
 
 		#if SCRIPTING_ALLOWED
 		loadScript();
@@ -309,7 +291,7 @@ class MusicBeatState extends FlxUIState
 
 	public function new(scriptsAllowed:Bool = true, ?scriptName:String) {
 		super();
-		mobileManager = new MobileControlManager();
+		mobileManager = new MobileControlManager(this);
 		if(lastStateName != (lastStateName = Type.getClassName(Type.getClass(this)))) {
 			lastScriptName = null;
 		}

@@ -155,7 +155,7 @@ class DialogueBox extends FlxSpriteGroup
 			dialogueStarted = true;
 		}
 
-		if(Controls.instance.ACCEPT #if TOUCH_CONTROLS || ScreenUtil.touch.justPressed #end)
+		if(Controls.instance.ACCEPT #if mobile || ScreenUtil.touch.justPressed #end)
 		{
 			if (dialogueEnded)
 			{

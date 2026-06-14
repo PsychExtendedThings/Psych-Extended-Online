@@ -167,6 +167,8 @@ class Song
 			if (!FunkinFileSystem.exists(modCneMetaPath))
 				modCneMetaPath = Paths.modFolders('songs/$songName/meta.json');
 
+			trace(modCneMetaPath);
+
 
 			if (FunkinFileSystem.exists(modCneChartPath)) {
 				var chartData = Json.parse(FunkinFileSystem.getText(modCneChartPath).trim());

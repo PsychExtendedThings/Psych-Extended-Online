@@ -3,7 +3,7 @@ package funkin.backend.shaders;
 import flixel.graphics.FlxGraphic;
 import flixel.system.FlxAssets.FlxShader;
 import haxe.Exception;
-#if HSC_ALLOWED
+#if (HSC_ALLOWED || SCRIPTING_ALLOWED)
 import codenamecrew.hscript.IHScriptCustomBehaviour;
 #else
 import hscriptBase.IHScriptCustomBehaviour;

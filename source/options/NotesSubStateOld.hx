@@ -69,7 +69,7 @@ class NotesSubStateOld extends MusicBeatSubstate
 		hsbText.scaleY = 0.6;
 		add(hsbText);
 
-		var buttonCTRL = #if TOUCH_CONTROLS controls.mobileControls ? 'E' : #end 'CTRL';
+		var buttonCTRL = controls.mobileControls ? 'E' : 'CTRL';
 		var tipText:FlxText = new FlxText(10, 10, 0, 'Press ${buttonCTRL} to change Key Count', 16);
 		tipText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		tipText.scrollFactor.set();

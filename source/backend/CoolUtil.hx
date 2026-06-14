@@ -20,6 +20,14 @@ import haxe.xml.Access;
 #end
 class CoolUtil
 {
+	/**
+	 * Gets the FlxEase from a string.
+	 * @param mainEase Main ease
+	 * @param suffix Suffix (Ignored if `mainEase` is `linear`)
+	 */
+	@:noUsing public static inline function flxeaseFromString(mainEase:String, ?suffix:String)
+		return Reflect.field(FlxEase, mainEase + (mainEase == "linear" || suffix == null ? "" : suffix));
+
 	/*
 	 * Returns `v` if not null
 	 * @param v The value

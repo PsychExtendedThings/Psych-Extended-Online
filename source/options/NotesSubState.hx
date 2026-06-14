@@ -181,11 +181,9 @@ class NotesSubState extends MusicBeatSubstate
 
 		mobileManager.addMobilePad('NONE', 'B_C');
 		controls.isInSubstate = true;
-		#if TOUCH_CONTROLS
 		mobileManager.mobilePad.getButton('buttonB').x = FlxG.width - 132;
 		mobileManager.mobilePad.getButton('buttonC').x = 0;
 		mobileManager.mobilePad.getButton('buttonC').y = FlxG.height - 135;
-		#end
 	}
 
 	function updateTip()
@@ -203,18 +201,14 @@ class NotesSubState extends MusicBeatSubstate
 		NUMPADSEVEN => '7', NUMPADEIGHT => '8', NUMPADNINE => '9', A => 'A', B => 'B', C => 'C', D => 'D', E => 'E', F => 'F'];
 
 	override function closeSubState() {
-		#if TOUCH_CONTROLS
 		mobileManager.removeMobilePad();
-		#end
 		super.closeSubState();
-		#if TOUCH_CONTROLS
 		mobileManager.addMobilePad('NONE', 'B_C');
 		mobileManager.addMobilePadCamera();
 		controls.isInSubstate = true;
 		mobileManager.mobilePad.getButton('buttonB').x = FlxG.width - 132;
 		mobileManager.mobilePad.getButton('buttonC').x = 0;
 		mobileManager.mobilePad.getButton('buttonC').y = FlxG.height - 135;
-		#end
 	}
 
 	override function update(elapsed:Float) {

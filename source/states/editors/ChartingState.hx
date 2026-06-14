@@ -1471,9 +1471,7 @@ class ChartingState extends MusicBeatState
 			DiscordClient.changePresence("Chart Editor", StringTools.replace(_song.song, '-', ' '));
 			#end
 		}
-		#if TOUCH_CONTROLS
 		mobileManager.mobilePad.active = mobileManager.mobilePad.visible = true;
-		#end
 		super.closeSubState();
 	}
 
@@ -2054,9 +2052,7 @@ class ChartingState extends MusicBeatState
 				playtesting = true;
 				playtestingTime = Conductor.songPosition;
 				playtestingOnComplete = FlxG.sound.music.onComplete;
-				#if TOUCH_CONTROLS
 				mobileManager.mobilePad.active = mobileManager.mobilePad.visible = false;
-				#end
 				openSubState(new states.editors.EditorPlayState(playbackSpeed));
 			}
 			if (FlxG.keys.justPressed.ENTER || mobileButtonJustPressed('A'))

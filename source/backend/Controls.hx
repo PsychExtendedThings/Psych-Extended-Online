@@ -203,83 +203,66 @@ class Controls
 	public var moodyBlues:ReplayPlayer;
 
 	public var isInSubstate:Bool = false; // don't worry about this it becomes true and false on it's own in MusicBeatSubstate
-	#if TOUCH_CONTROLS
 	public var requestedInstance(get, default):Dynamic; // is set to MusicBeatState or MusicBeatSubstate when the constructor is called
 	public var requestedHitbox(get, default):FunkinHitbox; // for PlayState and EditorPlayState
 	public var mobileControls(get, never):Bool;
-	#else
-	public var mobileControls:Bool = false;
-	#end
 
 	private function mobilePadPressed(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (keys != null && requestedInstance.mobileManager.mobilePad != null)
 			if (requestedInstance.mobileManager.mobilePad.pressed(keys) == true)
 				return true;
-		#end
 
 		return false;
 	}
 
 	private function mobilePadJustPressed(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (keys != null && requestedInstance.mobileManager.mobilePad != null)
 			if (requestedInstance.mobileManager.mobilePad.justPressed(keys) == true)
 				return true;
-		#end
 
 		return false;
 	}
 
 	private function mobilePadJustReleased(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (keys != null && requestedInstance.mobileManager.mobilePad != null)
 			if (requestedInstance.mobileManager.mobilePad.justReleased(keys) == true)
 				return true;
-		#end
 
 		return false;
 	}
 
 	private function hitboxPressed(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (keys != null && requestedHitbox != null)
 			if (requestedHitbox.pressed(keys) == true)
 				return true;
-		#end
 
 		return false;
 	}
 
 	private function hitboxJustPressed(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (keys != null && requestedHitbox != null)
 			if (requestedHitbox.justPressed(keys) == true)
 				return true;
-		#end
 
 		return false;
 	}
 
 	private function hitboxJustReleased(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (keys != null && requestedHitbox != null)
 			if (requestedHitbox.justReleased(keys) == true)
 				return true;
-		#end
 
 		return false;
 	}
 
 	private function scriptedButtonPressed(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (PlayState.instance != null) {
 			for (key => manager in PlayState.instance.customManagers) {
 				if (keys != null && manager[0] != null && manager[0].hitbox != null)
@@ -290,14 +273,12 @@ class Controls
 						return true;
 			}
 		}
-		#end
 
 		return false;
 	}
 
 	private function scriptedButtonJustPressed(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (PlayState.instance != null) {
 			for (key => manager in PlayState.instance.customManagers) {
 				if (keys != null && manager[0] != null && manager[0].hitbox != null)
@@ -308,14 +289,12 @@ class Controls
 						return true;
 			}
 		}
-		#end
 
 		return false;
 	}
 
 	private function scriptedButtonJustReleased(keys:Array<String>):Bool
 	{
-		#if TOUCH_CONTROLS
 		if (PlayState.instance != null) {
 			for (key => manager in PlayState.instance.customManagers) {
 				if (keys != null && manager[0] != null && manager[0].hitbox != null)
@@ -326,12 +305,10 @@ class Controls
 						return true;
 			}
 		}
-		#end
 
 		return false;
 	}
 
-	#if TOUCH_CONTROLS
 	@:noCompletion
 	private function get_requestedInstance():Dynamic
 	{
@@ -355,7 +332,6 @@ class Controls
 		else
 			return false;
 	}
-	#end
 
 	// IGNORE THESE
 	public static var instance:Controls;
