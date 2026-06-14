@@ -30,7 +30,7 @@ jobs:
     name: ${{ inputs.name }}
     runs-on: ${{ inputs.os }}
     permissions:
-      contents: write # Needed for the release to work
+      contents: write # CRITICAL: Allows GitHub to post files to your Releases page
     steps:
       - name: Checkout
         uses: actions/checkout@main
@@ -38,15 +38,14 @@ jobs:
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master
         with:
-          # This is the "Magic Fix" for the Unexpected ? error
-          haxe-version: 4.3.4 
+          haxe-version: 4.3.4 # Fixes the "Unexpected ?" error in Main.hx
 
       - name: Install Libraries
         run: |
           haxelib setup ~/haxelib
           ${{ inputs.setupCommand }}
           
-          # This fixes the "lime setup android" error from your previous log
+          # Fixes the "lime setup android" error for the Android runner
           if [ "${{ runner.os }}" = "Linux" ]; then
             haxelib run lime config ANDROID_SDK $ANDROID_HOME
             haxelib run lime config ANDROID_NDK $ANDROID_NDK_LATEST_HOME
@@ -58,20 +57,30 @@ jobs:
         run: haxelib run lime build ${{ inputs.buildArgs }}
         shell: bash
 
+      # Packs the Windows executable + assets + .dll files into a neat .zip archive
+      - name: Package Windows Build (.zip)
+        if: runner.os == 'Windows'
+        run: |
+          cd export/release/windows/bin
+          Compress-Archive -Path * -DestinationPath ../../../../PsychOnline-Windows.zip
+        shell: pwsh
+
       - name: Upload Artifact
         uses: actions/upload-artifact@main
         with:
           name: ${{ inputs.artifactName }}
           path: ${{ inputs.artifactPath }}
 
-      # ADDED: Upload Release (using softprops/shopify-style action)
+      # The Releaser: Posts either your APK or Windows ZIP automatically to your repo page
       - name: Upload Release
         uses: softprops/action-gh-release@v1
         if: success()
         with:
           tag_name: "v${{ github.run_number }}"
           name: "Psych Online Build #${{ github.run_number }}"
-          body: "Automated Build for Psych Extended Online"
-          files: ${{ inputs.artifactPath }}
+          body: "Automated compilation build for ${{ inputs.name }}"
+          files: |
+            export/release/android/bin/app/build/outputs/apk/release/*.apk
+            PsychOnline-Windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
