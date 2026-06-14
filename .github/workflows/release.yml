@@ -24,7 +24,8 @@ jobs:
             setupCommand: "setup/windows.bat"
             buildArgs: "windows -D officialBuild -final"
             artifactName: windowsBuild-x86_64
-            artifactPath: "export/release/windows/bin/*.exe"
+            # Changed this to point to the zip package created inside build.yml
+            artifactPath: "PsychOnline-Windows.zip"
             doCache: "YES"
 
     uses: ./.github/workflows/build.yml
@@ -38,10 +39,8 @@ jobs:
       doCache: ${{ matrix.doCache }}
     secrets: inherit
 
-  # THIS IS THE PART YOU WANTED: A single job in the main file
   Release:
     needs: Build
-    # Run even if Windows fails, as long as SOMETHING (Android) succeeded
     if: ${{ always() && contains(needs.Build.result, 'success') }}
     runs-on: ubuntu-latest
     permissions:
@@ -61,10 +60,9 @@ jobs:
           body: |
             ## 🚀 Automated Build Results
             - Build Number: ${{ github.run_number }}
-            - Files: Android (Astra) and Windows (if successful)
-          # This grabs everything we downloaded in the previous step
+            - Files included below (if successful)
           files: |
             ./outputs/*.apk
-            ./outputs/*.exe
+            ./outputs/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
