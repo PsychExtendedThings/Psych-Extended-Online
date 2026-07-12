@@ -1,68 +1,68 @@
-name: Build Psych Extended Online + Release
-on: workflow_dispatch
+name: Android Build Compiler Psych Online
 
-permissions:
-  contents: write
-  discussions: write
-
-env:
-  PROJECT_NAME: PsychExtendedOnline
+on: 
+  workflow_dispatch:
+  push:
+    branches: [ "dev" ]
 
 jobs:
-  build:
-    name: ${{ matrix.name }}
+  Build:
     strategy:
+      fail-fast: false 
       matrix:
         include:
-          - name: Android
-            os: macos-15
-            buildArgs: "android -final -D officialBuild"
-            artifactName: androidBuild
+          - name: Android-NORMAL
+            os: ubuntu-latest
+            setupCommand: sh ./setup/unix-alter.sh
+            buildArgs: "android -ONLY_ARM64 -final" 
+            artifactName: androidBuild-Astra
             artifactPath: "export/release/android/bin/app/build/outputs/apk/release/*.apk"
-          - name: iOS
-            os: macos-15
-            buildArgs: "ios -final -nosign -D officialBuild"
-            artifactName: iOSBuild
-            artifactPath: "export/release/ios/build/Release-iphoneos/*.ipa"
+            doCache: "YES"
+
+          - name: Windows-NORMAL
+            os: windows-latest
+            setupCommand: "setup/windows.bat"
+            buildArgs: "windows -D officialBuild -final"
+            artifactName: windowsBuild-x86_64
+            # Changed this to point to the zip package created inside build.yml
+            artifactPath: "PsychOnline-Windows.zip"
+            doCache: "YES"
+
     uses: ./.github/workflows/build.yml
     with:
-        name: ${{ matrix.name }}
-        os: ${{ matrix.os }}
-        buildArgs: ${{ matrix.buildArgs }}
-        artifactName: ${{ matrix.artifactName }}
-        artifactPath: ${{ matrix.artifactPath }}
+      name: ${{ matrix.name }}
+      os: ${{ matrix.os }}
+      setupCommand: ${{ matrix.setupCommand }}
+      buildArgs: ${{ matrix.buildArgs }}
+      artifactName: ${{ matrix.artifactName }}
+      artifactPath: ${{ matrix.artifactPath }}
+      doCache: ${{ matrix.doCache }}
+    secrets: inherit
 
-  Releaser:
-    needs: [build]
+  Release:
+    needs: Build
+    if: ${{ always() && contains(needs.Build.result, 'success') }}
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      contents: write
     steps:
-      - name: Download Android Build
-        uses: actions/download-artifact@main
+      - name: Download All Files
+        uses: actions/download-artifact@v4
         with:
-          name: androidBuild
-          path: /home/runner
+          path: ./outputs
+          merge-multiple: true 
 
-      - name: Move Android File
-        run: mv /home/runner/${{ env.PROJECT_NAME }}-release.apk /home/runner/${{ env.PROJECT_NAME }}-Android.apk
-
-      - name: Download iOS Build
-        uses: actions/download-artifact@main
+      - name: Create Single Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: iOSBuild
-          path: ${{ github.workspace }}
-
-      - name: Move iOS File
-        run: mv ${{ github.workspace }}/${{ env.PROJECT_NAME }}.ipa /home/runner/${{ env.PROJECT_NAME }}-iOS.ipa
-
-      - name: Publish The Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: "0.1.0"
-          tag_name: "0.1.0"
-          prerelease: false
+          tag_name: "v${{ github.run_number }}"
+          name: "Android Build Compiler Psych Online #${{ github.run_number }}"
+          body: |
+            ## 🚀 Automated Build Results
+            - Build Number: ${{ github.run_number }}
+            - Files included below (if successful)
           files: |
-            /home/runner/*.apk
-            /home/runner/*.ipa
-            /home/runner/*.tar
-            /home/runner/*.zip
+            ./outputs/*.apk
+            ./outputs/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
